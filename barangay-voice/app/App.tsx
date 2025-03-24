@@ -4,8 +4,8 @@ import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import HomeScreen from "../components/HomeScreen";
-import LandingPage from "../components/LandingPage";
+import HomeScreen from "../screens/HomeScreen";
+import LandingPage from "../screens/LandingPage";
 
 export type RootStackParamList = {
   HomeScreen: undefined;

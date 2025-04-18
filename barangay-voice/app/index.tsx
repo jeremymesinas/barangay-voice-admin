@@ -44,11 +44,14 @@ export default function HomeScreen() {
           The Barangay Voice app brings governance closer to you—efficient, transparent, and citizen-focused.
         </Text>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.push("/LandingPage")}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push("/SignUp")}>
           <Text style={styles.buttonText}>GET STARTED</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.loginText} onPress={() => router.push("/LogIn")}>
         <Text style={styles.loginText}>Already have an account?</Text>
+        </TouchableOpacity>
+        
       </View>
     </View>
   );

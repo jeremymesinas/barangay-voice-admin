@@ -61,7 +61,7 @@ export default function LogIn() {
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
       </TouchableOpacity>   
       
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push("/LandingPage")}>
         <Text style={styles.buttonText}>LOGIN</Text>
       </TouchableOpacity>
 
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F5F5F5",
-    width: "80%",
+    width: "90%",
     height: 50,
     marginBottom: 15,
     borderRadius: 25,

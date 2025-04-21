@@ -51,12 +51,51 @@ export default function SignUp() {
         </View>
 
         <View style={styles.form}>
-          <TextInput style={styles.input} placeholder="First Name" />
-          <TextInput style={styles.input} placeholder="Last Name" />
-          <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" />
-          <TextInput style={styles.input} placeholder="Phone Number" keyboardType="phone-pad" />
-          <TextInput style={styles.input} placeholder="Password" secureTextEntry />
-          <TextInput style={styles.input} placeholder="Confirm Password" secureTextEntry />
+        <View style={styles.fieldContainer}>
+  <Text style={styles.label}>First Name</Text>
+  <TextInput style={styles.input} placeholder="First Name" />
+</View>
+
+<View style={styles.fieldContainer}>
+  <Text style={styles.label}>Last Name</Text>
+  <TextInput style={styles.input} placeholder="Last Name" />
+</View>
+
+<View style={styles.fieldContainer}>
+  <Text style={styles.label}>Email</Text>
+  <TextInput
+    style={styles.input}
+    placeholder="Email"
+    keyboardType="email-address"
+  />
+</View>
+
+<View style={styles.fieldContainer}>
+  <Text style={styles.label}>Phone Number</Text>
+  <TextInput
+    style={styles.input}
+    placeholder="Phone Number"
+    keyboardType="phone-pad"
+  />
+</View>
+
+<View style={styles.fieldContainer}>
+  <Text style={styles.label}>Password</Text>
+  <TextInput
+    style={styles.input}
+    placeholder="Password"
+    secureTextEntry
+  />
+</View>
+
+<View style={styles.fieldContainer}>
+  <Text style={styles.label}>Confirm Password</Text>
+  <TextInput
+    style={styles.input}
+    placeholder="Confirm Password"
+    secureTextEntry
+  />
+</View>
 
           <View style={styles.passwordPolicyContainer}>
             <Text style={styles.policyTitle}>Password Policies:</Text>
@@ -100,6 +139,15 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     resizeMode: "contain",
+  },
+  fieldContainer: {
+    marginBottom: 5,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: "#D5305A",
   },
   form: {
     width: "90%",
@@ -153,5 +201,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textDecorationLine: "underline",
     marginTop: 10,
+    marginBottom: 20,
   },
 });

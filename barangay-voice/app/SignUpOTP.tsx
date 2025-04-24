@@ -1,11 +1,36 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, TextInput as RNTextInput } from 'react-native';
 import { useRouter } from "expo-router";
 
 export default function SignUpOTP() {
+  const router = useRouter();
+  const [otp, setOtp] = React.useState(["", "", "", ""]);
 
-    const router = useRouter();
-    
+
+  // Define refs with proper type
+  const inputRefs = [
+    useRef<RNTextInput>(null),
+    useRef<RNTextInput>(null),
+    useRef<RNTextInput>(null),
+    useRef<RNTextInput>(null),
+  ];
+  const handleInputChange = (text: string, index: number) => {
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+  
+    if (text.length > 0 && index < inputRefs.length - 1) {
+      inputRefs[index + 1].current?.focus();
+    }
+  };
+  
+  const handleKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && otp[index] === "" && index > 0) {
+      inputRefs[index - 1].current?.focus();
+    }
+  };
+  
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.topHalf}>
@@ -18,16 +43,19 @@ export default function SignUpOTP() {
         </Text>
 
         <View style={styles.codeContainer}>
-          {['', '', '', ''].map((_, index) => (
-            <TextInput
-              key={index}
-              style={styles.codeInput}
-              maxLength={1}
-              keyboardType="numeric"
-              placeholder="" // Remove the placeholder "-"
-              textAlign="center"
-            />
-          ))}
+        {[0, 1, 2, 3].map((_, index) => (
+          <TextInput
+            key={index}
+            ref={inputRefs[index]}
+            style={styles.codeInput}
+            maxLength={1}
+            keyboardType="numeric"
+            value={otp[index]}
+            onChangeText={(text: string) => handleInputChange(text, index)}
+            onKeyPress={(e) => handleKeyPress(e, index)}
+            textAlign="center"
+          />
+        ))}
         </View>
 
         <TouchableOpacity style={styles.button} onPress={() => router.push("/LogIn")}>

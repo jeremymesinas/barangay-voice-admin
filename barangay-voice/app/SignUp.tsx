@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,29 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useRouter } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
+import { registerUser } from "../scripts/account-actions";
+console.log(typeof registerUser); // This should log 'function'
 
 SplashScreen.preventAutoHideAsync();
 
 export default function SignUp() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [fontsLoaded] = useFonts({
     "Anton-Regular": require("../assets/fonts/Anton.ttf"),
     "Poppins-Regular": require("../assets/fonts/Poppins.ttf"),
@@ -29,6 +44,35 @@ export default function SignUp() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  const handleRegister = async () => {
+
+    if (!firstName || !lastName || !email || !phoneNumber || !password || !confirmPassword) {
+      alert("Please fill out all required fields.");
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    const result = await registerUser({
+      email,
+      password,
+      firstName,
+      middleName,
+      lastName,
+      phoneNumber,
+    });
+
+    if (result.error) {
+      alert("Registration Failed");
+    } else {
+      alert("Registration successful! Check your email for the OTP.");
+      router.push("/SignUpOTP");
+    }
+  };
 
   if (!fontsLoaded) {
     return (
@@ -51,51 +95,78 @@ export default function SignUp() {
         </View>
 
         <View style={styles.form}>
-        <View style={styles.fieldContainer}>
-  <Text style={styles.label}>First Name</Text>
-  <TextInput style={styles.input} placeholder="First Name" />
-</View>
+          <View style={styles.fieldContainer}>
+            <Text style={styles.reminder}>Please fill out the form. Fields with * are optional.</Text>
 
-<View style={styles.fieldContainer}>
-  <Text style={styles.label}>Last Name</Text>
-  <TextInput style={styles.input} placeholder="Last Name" />
-</View>
+            <Text style={styles.label}>First Name</Text>
+            <TextInput style={styles.input} placeholder="First Name" value={firstName} onChangeText={setFirstName} />
+          </View>
 
-<View style={styles.fieldContainer}>
-  <Text style={styles.label}>Email</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Email"
-    keyboardType="email-address"
-  />
-</View>
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Middle Name *</Text>
+            <TextInput style={styles.input} placeholder="Middle Name" value={middleName} onChangeText={setMiddleName} />
+          </View>
 
-<View style={styles.fieldContainer}>
-  <Text style={styles.label}>Phone Number</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Phone Number"
-    keyboardType="phone-pad"
-  />
-</View>
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Last Name</Text>
+            <TextInput style={styles.input} placeholder="Last Name" value={lastName} onChangeText={setLastName} />
+          </View>
 
-<View style={styles.fieldContainer}>
-  <Text style={styles.label}>Password</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Password"
-    secureTextEntry
-  />
-</View>
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} />
+          </View>
 
-<View style={styles.fieldContainer}>
-  <Text style={styles.label}>Confirm Password</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Confirm Password"
-    secureTextEntry
-  />
-</View>
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput style={styles.input} placeholder="Phone Number" keyboardType="phone-pad" value={phoneNumber} onChangeText={setPhoneNumber} />
+          </View>
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword((prev) => !prev)}
+              >
+                <FontAwesome
+                  name={showPassword ? "eye" : "eye-slash"}
+                  size={24}
+                  color="#D5305A"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm Password"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowConfirmPassword((prev) => !prev)}
+              >
+                <FontAwesome
+                  name={showConfirmPassword ? "eye" : "eye-slash"}
+                  size={24}
+                  color="#D5305A"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.passwordPolicyContainer}>
             <Text style={styles.policyTitle}>Password Policies:</Text>
@@ -106,7 +177,7 @@ export default function SignUp() {
             <Text style={styles.policyItem}>• Must include at least one special character (!@#$%^&* etc.)</Text>
           </View>
 
-          <TouchableOpacity style={styles.registerButton} onPress={() => router.push("/SignUpOTP")}>
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
             <Text style={styles.registerButtonText}>REGISTER</Text>
           </TouchableOpacity>
 
@@ -149,6 +220,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#D5305A",
   },
+  reminder: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+  },
   form: {
     width: "90%",
     gap: 15,
@@ -162,7 +239,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Poppins-Regular",
     backgroundColor: "#fff",
-  },  
+  },
   passwordPolicyContainer: {
     backgroundColor: "#E4F1AC",
     borderRadius: 8,
@@ -202,5 +279,15 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     marginTop: 10,
     marginBottom: 20,
+  },
+  passwordInputContainer: {
+    position: "relative",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    color: "#D5305A",
   },
 });

@@ -16,11 +16,11 @@ export default function BottomNavigation() {
       <TouchableOpacity onPress={() => router.push("/LandingPage")}>
         <Ionicons name="home" size={24} color={getColor("/LandingPage")} />
       </TouchableOpacity>
-      <TouchableOpacity >
-        <Ionicons name="notifications" size={24} color={getColor("/Notifications")} />
-      </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push("/Report")}>
-        <Ionicons name="megaphone" size={24} color={getColor("/Report")} />
+        <Ionicons name="notifications" size={24} color={getColor("/Report")} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push("/emergency")}>
+        <Ionicons name="megaphone" size={24} color={getColor("/emergency")} />
       </TouchableOpacity>
       <TouchableOpacity>
         <Ionicons name="person" size={24} color={getColor("/Notifications")}/>

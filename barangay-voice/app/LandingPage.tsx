@@ -4,6 +4,7 @@ import { useFonts } from "expo-font"; // Import the font hook from Expo
 import ProfileCard from "../components/ProfileCard";
 import ActionButton from "../components/ActionButton";
 import AnnouncementCard from "../components/AnnouncementCard";
+import BottomNavigation from "../components/BottomNavigation";
 
 export default function LandingPage() {
   // Load fonts using the useFonts hook
@@ -71,6 +72,7 @@ export default function LandingPage() {
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>
+      <BottomNavigation />
     </SafeAreaView>
   );
 }

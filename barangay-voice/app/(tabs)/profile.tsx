@@ -23,7 +23,7 @@ export default function Profile() {
           <TextInput style={styles.inputField} placeholder="Email Address" />
           <TextInput style={styles.inputField} placeholder="Phone Number" />
           <Pressable style={styles.saveButton}>
-            <Text style={styles.saveButtonText}>SAVE CHANGES</Text>
+            <Text style={styles.saveButtonText}>Save Changes</Text>
           </Pressable>
         </View>
 
@@ -64,12 +64,11 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 24,
-    fontFamily: 'Anton-Regular', // Using Anton font
+    fontWeight: 'bold',
     color: '#333',
   },
   profileLocation: {
     fontSize: 16,
-    fontFamily: 'Poppins-Regular', // Using Poppins font
     color: '#666',
   },
   editSection: {
@@ -77,8 +76,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'Poppins-Regular', // Using Anton font
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 10,
     color: '#333',
   },
@@ -103,7 +101,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontFamily: 'Anton-Regular', // Using Anton font
+    fontWeight: 'bold',
   },
   settingsSection: {
     marginTop: 20,
@@ -118,7 +116,6 @@ const styles = StyleSheet.create({
   settingsButtonText: {
     color: '#333',
     fontSize: 16,
-    fontFamily: 'Poppins-Regular', // Using Anton font
     fontWeight: 'bold',
   },
 });

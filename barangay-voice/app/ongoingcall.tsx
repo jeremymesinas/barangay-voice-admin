@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TextInput, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TextInput, TouchableOpacity, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
 
-const { width, height } = Dimensions.get('window'); 
+const { width } = Dimensions.get('window');
 
 interface Props {
   onEndCall: () => void;
@@ -19,6 +20,11 @@ export default function OngoingCall({ onEndCall }: Props) {
 
   const router = useRouter();
 
+  const [fontsLoaded] = useFonts({
+    'Anton-Regular': require('@/assets/fonts/Anton.ttf'),
+    'Poppins-Regular': require('@/assets/fonts/Poppins.ttf'),
+  });
+
   const handleSend = () => {
     if (message.trim() !== '') {
       setMessages([...messages, { text: message, sender: 'sender' }]);
@@ -30,10 +36,20 @@ export default function OngoingCall({ onEndCall }: Props) {
     router.push('/emergency');
   };
 
+  if (!fontsLoaded) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#EA3A57"
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+      />
+    );
+  }
+
   return (
     <ScrollView style={styles.scrollArea}>
       <View style={styles.wrapper}>
-        {/* Header Section */}
+        {/* Header */}
         <View style={styles.header}>
           <SafeAreaView style={styles.headerContent}>
             <Text style={styles.headerText}>BARANGAY{'\n'}VOICE</Text>
@@ -41,7 +57,7 @@ export default function OngoingCall({ onEndCall }: Props) {
           </SafeAreaView>
         </View>
 
-        {/* Red Banner */}
+        {/* Emergency Banner */}
         <View style={styles.redBanner}>
           <Text style={styles.bannerText}>EMERGENCY RESPONSE</Text>
         </View>
@@ -114,15 +130,16 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#fff',
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    alignItems: 'center',
   },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: width * 0.05,
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    alignItems: 'center',
+  },
+  scrollArea: {
+    backgroundColor: '#fff',
   },
   header: {
     backgroundColor: '#88C057',
@@ -138,7 +155,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'Anton-Regular',
     fontSize: 20,
     lineHeight: 24,
   },
@@ -159,27 +176,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
   },
   bannerText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontFamily: 'Anton-Regular',
+    fontSize: 18,
     textAlign: 'center',
   },
-  scrollArea: {
-    backgroundColor: '#fff',
-  },
   statusText: {
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Regular',
     fontSize: 20,
     textAlign: 'center',
   },
   circleLogo: {
     marginTop: 15,
     width: width * 0.25,
-    height: width * 0.25, 
-    borderRadius: width * 0.125, 
+    height: width * 0.25,
+    borderRadius: width * 0.125,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -187,7 +200,7 @@ const styles = StyleSheet.create({
   },
   agency: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Regular',
     marginVertical: 10,
     textAlign: 'center',
   },
@@ -211,11 +224,12 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 15,
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
+    marginTop: 15,
   },
   infoText: {
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
     paddingHorizontal: 10,
     marginVertical: 10,
@@ -245,6 +259,7 @@ const styles = StyleSheet.create({
   },
   chatText: {
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
   },
   inputBar: {
     flexDirection: 'row',
@@ -252,7 +267,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderTopWidth: 1,
-    color: '#000',
     borderColor: '#ccc',
     backgroundColor: '#fff',
     marginTop: 10,
@@ -264,6 +278,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f1f1',
     borderRadius: 20,
     marginHorizontal: 10,
+    fontFamily: 'Poppins-Regular',
   },
   locationBox: {
     backgroundColor: '#DAF0A2',
@@ -273,11 +288,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   locationLabel: {
+    fontFamily: 'Poppins-Regular',
     fontWeight: 'bold',
     marginBottom: 4,
     color: '#EA3A57',
   },
   locationText: {
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
   },
 });

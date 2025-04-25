@@ -12,11 +12,9 @@ import {
 import { router } from 'expo-router';
 import BottomNavigation from '@/components/BottomNavigation';
 
-
 export default function Report() {
   return (
     <View style={styles.wrapper}>
-      {/* Header */}
       <View style={styles.header}>
         <SafeAreaView style={styles.headerContent}>
           <Text style={styles.headerText}>BARANGAY{'\n'}VOICE</Text>
@@ -24,12 +22,10 @@ export default function Report() {
         </SafeAreaView>
       </View>
 
-      {/* Red Banner */}
       <View style={styles.redBanner}>
         <Text style={styles.bannerText}>REPORTS</Text>
       </View>
 
-      {/* Content */}
       <SafeAreaView style={styles.contentWrapper}>
         <ScrollView contentContainerStyle={styles.content}>
           {reportData.map((report, index) => (
@@ -54,6 +50,7 @@ export default function Report() {
           ))}
         </ScrollView>
       </SafeAreaView>
+
       <BottomNavigation />
     </View>
   );
@@ -99,9 +96,10 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: 22,
+    fontFamily: 'Anton-Regular',  // Updated to Anton font
+    fontWeight: '700',
+    lineHeight: 26,
   },
   flagIcon: {
     width: 40,
@@ -118,15 +116,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: -15,
     marginBottom: 20,
-    justifyContent: 'center', 
-    alignItems: 'center',    
-    flexDirection: 'row',    
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   bannerText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center', 
+    fontSize: 18,
+    fontFamily: 'Anton-Regular',  // Updated to Anton font
+    fontWeight: '700',
+    textAlign: 'center',
   },
   contentWrapper: {
     flex: 1,
@@ -161,19 +160,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 5,
+    fontFamily: 'Poppins-Regular',  // Updated to Poppins font
+    fontWeight: '700',
     color: '#333',
+    marginBottom: 5,
   },
   meta: {
     fontSize: 13,
+    fontFamily: 'Poppins-Regular',  // Updated to Poppins font
+    fontWeight: '400',
     color: '#555',
     marginBottom: 8,
   },
   status: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Regular',  // Updated to Poppins font
+    fontWeight: '600',
   },
   pending: {
     color: '#FFA500',
@@ -191,7 +194,8 @@ const styles = StyleSheet.create({
   },
   viewText: {
     color: '#EA3A57',
-    fontWeight: 'bold',
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',  // Updated to Poppins font
+    fontWeight: '600',
   },
 });

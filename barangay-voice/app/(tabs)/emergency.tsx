@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'Anton-Regular',
     fontSize: 20,
     lineHeight: 24,
   },
@@ -143,28 +143,29 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: -15,
     marginBottom: 20,
-    justifyContent: 'center', 
-    alignItems: 'center',    
-    flexDirection: 'row',    
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   bannerText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'Anton-Regular',
     fontSize: 16,
-    textAlign: 'center', 
+    textAlign: 'center',
   },
-  
   content: {
     alignItems: 'center',
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Regular',
     marginBottom: 20,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
     marginHorizontal: 10,
     marginTop: 10,
@@ -184,6 +185,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
     color: '#000',
     textAlign: 'center',
   },
@@ -196,7 +198,8 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: '#EA3A57',
-    fontWeight: 'bold',
+    fontFamily: 'Anton-Regular',
     fontSize: 16,
   },
 });
+

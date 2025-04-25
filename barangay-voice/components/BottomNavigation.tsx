@@ -12,6 +12,12 @@ export default function BottomNavigation() {
         <Ionicons name="notifications" size={24} color="#fff" />
       </TouchableOpacity>
       <TouchableOpacity>
+        <Ionicons name="megaphone" size={24} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity>
+        <Ionicons name="briefcase" size={24} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity>
         <Ionicons name="person" size={24} color="#fff" />
       </TouchableOpacity>
     </View>

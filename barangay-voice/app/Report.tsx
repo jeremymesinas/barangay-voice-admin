@@ -9,11 +9,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
+import BottomNavigation from '@/components/BottomNavigation';
 
 
 export default function Report() {
-  const router = useRouter();
   return (
     <View style={styles.wrapper}>
       {/* Header */}
@@ -54,6 +54,7 @@ export default function Report() {
           ))}
         </ScrollView>
       </SafeAreaView>
+      <BottomNavigation />
     </View>
   );
 }

@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from 'react-native-dotenv';
+// import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from 'react-native-dotenv';
 
 const supabaseUrl = PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = PUBLIC_SUPABASE_ANON_KEY;
@@ -54,4 +54,17 @@ export async function registerUser({ email, password, firstName, middleName, las
   }
 
   return { success: true, otp_code };
+}
+
+export async function loginUser({ email, password }) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, user: data.user };
 }

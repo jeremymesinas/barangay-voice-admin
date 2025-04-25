@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
-import { useRouter } from "expo-router"; // Import the useRouter hook
-import { useFonts } from "expo-font"; // Import the font hook from Expo
-import * as SplashScreen from "expo-splash-screen"; // Import splash screen handling
-import { ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from "react-native";
+import { useRouter } from "expo-router";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { loginUser } from "../scripts/account-actions";
 
-
-SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding
+SplashScreen.preventAutoHideAsync();
 
 export default function LogIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins.ttf"),
     "Anton-Regular": require("../assets/fonts/Anton.ttf"),
@@ -17,25 +20,37 @@ export default function LogIn() {
   const router = useRouter();
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      console.log("Please enter both email and password.");
+      return;
+    }
+
+    setLoading(true);
+    const response = await loginUser({ email, password });
+    setLoading(false);
+
+    if (response.error) {
+      alert("Login Failed");
+      console.log("Login Failed");
+    } else {
+      router.push("/home");
+    }
+  };
+
+  if (!fontsLoaded) return <ActivityIndicator size="large" color="#0000ff" />;
 
   return (
     <View style={styles.container}>
-      {/* Top bar with the logo */}
       <View style={styles.topHalf}>
         <Image source={require("../assets/images/barangay-voice.png")} style={styles.logo} />
       </View>
 
-      {/* Bottom part with Email, Password fields, and buttons */}
       <View style={styles.bottomHalf}>
-        {/* Email field with user icon */}
         <View style={styles.inputContainer}>
           <Image source={require("../assets/images/user.png")} style={styles.icon} />
           <TextInput
@@ -43,10 +58,11 @@ export default function LogIn() {
             placeholder="Email"
             keyboardType="email-address"
             autoCapitalize="none"
+            onChangeText={setEmail}
+            value={email}
           />
         </View>
 
-        {/* Password field with lock icon */}
         <View style={styles.inputContainer}>
           <Image source={require("../assets/images/password.png")} style={styles.icon} />
           <TextInput
@@ -54,21 +70,23 @@ export default function LogIn() {
             placeholder="Password"
             secureTextEntry
             autoCapitalize="none"
+            onChangeText={setPassword}
+            value={password}
           />
         </View>
- 
-      <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
-      </TouchableOpacity>   
-      
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/home")}>
-        <Text style={styles.buttonText}>LOGIN</Text>
-      </TouchableOpacity>
 
+        <TouchableOpacity style={styles.forgotPassword}>
+          <Text style={styles.forgotPassword}>Forgot Password?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? "Logging in..." : "LOGIN"}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

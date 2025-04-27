@@ -4,6 +4,7 @@ import { useFonts } from "expo-font";
 import ProfileCard from "../../components/ProfileCard";
 import ActionButton from "../../components/ActionButton";
 import AnnouncementCard from "../../components/AnnouncementCard";
+import { ProtectedRoute } from "@/contexts/ProtectedRoutes";
 import { router } from "expo-router";
 
 export default function LandingPage() {
@@ -26,6 +27,7 @@ export default function LandingPage() {
   }
 
   return (
+  // <ProtectedRoute>
     <SafeAreaView style={styles.safeContainer}>
       <View style={styles.container}>
         <ScrollView

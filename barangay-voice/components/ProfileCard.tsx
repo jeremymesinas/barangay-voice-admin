@@ -6,7 +6,7 @@ export default function ProfileCard() {
     <View style={styles.container}>
       <Image source={require("../assets/images/barangay-voice.png")} style={styles.profileImage} />
       <Text style={styles.welcomeText}>Welcome back,</Text>
-      <Text style={styles.username}>Jeremy Mesinas</Text>
+      <Text style={styles.username}>Firstname Lastname</Text>
     </View>
   );
 }

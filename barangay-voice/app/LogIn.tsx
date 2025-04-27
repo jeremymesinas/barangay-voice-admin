@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { loginUser } from "../scripts/account-actions";
+import { useAuth } from "@/contexts/AuthContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -11,6 +12,7 @@ export default function LogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins.ttf"),
@@ -36,9 +38,8 @@ export default function LogIn() {
 
     if (response.error) {
       alert("Login Failed");
-      console.log("Login Failed");
     } else {
-      router.push("/home");
+      login(); 
     }
   };
 

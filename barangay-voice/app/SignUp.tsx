@@ -9,21 +9,18 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
-  Alert,
 } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { registerUser } from "../scripts/account-actions";
-console.log(typeof registerUser); // This should log 'function'
 
 SplashScreen.preventAutoHideAsync();
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -45,14 +42,26 @@ export default function SignUp() {
     }
   }, [fontsLoaded]);
 
-  const handleRegister = async () => {
+  // Password validation functions
+  const hasMinLength = password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*]/.test(password);
+  const passwordsMatch = password === confirmPassword && password !== "";
 
+  const handleRegister = async () => {
     if (!firstName || !lastName || !email || !phoneNumber || !password || !confirmPassword) {
       alert("Please fill out all required fields.");
       return;
     }
     
-    if (password !== confirmPassword) {
+    if (!hasMinLength || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      alert("Password does not meet all requirements");
+      return;
+    }
+
+    if (!passwordsMatch) {
       alert("Passwords do not match");
       return;
     }
@@ -114,12 +123,25 @@ export default function SignUp() {
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Email</Text>
-            <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} />
+            <TextInput 
+              style={styles.input} 
+              placeholder="Email" 
+              keyboardType="email-address" 
+              value={email} 
+              onChangeText={setEmail} 
+              autoCapitalize="none"
+            />
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Phone Number</Text>
-            <TextInput style={styles.input} placeholder="Phone Number" keyboardType="phone-pad" value={phoneNumber} onChangeText={setPhoneNumber} />
+            <TextInput 
+              style={styles.input} 
+              placeholder="Phone Number" 
+              keyboardType="phone-pad" 
+              value={phoneNumber} 
+              onChangeText={setPhoneNumber} 
+            />
           </View>
 
           <View style={styles.fieldContainer}>
@@ -131,6 +153,7 @@ export default function SignUp() {
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                autoCapitalize="none"
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -154,6 +177,7 @@ export default function SignUp() {
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                autoCapitalize="none"
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -169,12 +193,67 @@ export default function SignUp() {
           </View>
 
           <View style={styles.passwordPolicyContainer}>
-            <Text style={styles.policyTitle}>Password Policies:</Text>
-            <Text style={styles.policyItem}>• Must have at least 8 characters</Text>
-            <Text style={styles.policyItem}>• Must include at least one uppercase letter (A-Z)</Text>
-            <Text style={styles.policyItem}>• Must include at least one lowercase letter (a-z)</Text>
-            <Text style={styles.policyItem}>• Must include at least one number (0-9)</Text>
-            <Text style={styles.policyItem}>• Must include at least one special character (!@#$%^&* etc.)</Text>
+            <Text style={styles.policyTitle}>Password Requirements:</Text>
+            
+            <View style={styles.policyItem}>
+              <FontAwesome
+                name={hasMinLength ? "check-circle" : "times-circle"}
+                size={16}
+                color={hasMinLength ? "#2E8B57" : "#D5305A"}
+                style={styles.policyIcon}
+              />
+              <Text style={styles.policyText}>At least 8 characters</Text>
+            </View>
+            
+            <View style={styles.policyItem}>
+              <FontAwesome
+                name={hasUpperCase ? "check-circle" : "times-circle"}
+                size={16}
+                color={hasUpperCase ? "#2E8B57" : "#D5305A"}
+                style={styles.policyIcon}
+              />
+              <Text style={styles.policyText}>At least one uppercase letter (A-Z)</Text>
+            </View>
+            
+            <View style={styles.policyItem}>
+              <FontAwesome
+                name={hasLowerCase ? "check-circle" : "times-circle"}
+                size={16}
+                color={hasLowerCase ? "#2E8B57" : "#D5305A"}
+                style={styles.policyIcon}
+              />
+              <Text style={styles.policyText}>At least one lowercase letter (a-z)</Text>
+            </View>
+            
+            <View style={styles.policyItem}>
+              <FontAwesome
+                name={hasNumber ? "check-circle" : "times-circle"}
+                size={16}
+                color={hasNumber ? "#2E8B57" : "#D5305A"}
+                style={styles.policyIcon}
+              />
+              <Text style={styles.policyText}>At least one number (0-9)</Text>
+            </View>
+            
+            <View style={styles.policyItem}>
+              <FontAwesome
+                name={hasSpecialChar ? "check-circle" : "times-circle"}
+                size={16}
+                color={hasSpecialChar ? "#2E8B57" : "#D5305A"}
+                style={styles.policyIcon}
+              />
+              <Text style={styles.policyText}>At least one special character (!@#$%^&*)</Text>
+            </View>
+            
+            <View style={styles.policyItem}>
+              <FontAwesome
+                name={passwordsMatch ? "check-circle" : "times-circle"}
+                size={16}
+                color={passwordsMatch ? "#2E8B57" : "#D5305A"}
+                style={styles.policyIcon}
+              />
+              <Text style={styles.policyText}>Passwords match</Text>
+            </View>
           </View>
 
           <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
@@ -250,12 +329,29 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 10,
   },
   policyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  policyIcon: {
+    marginRight: 8,
+  },
+  policyText: {
     fontFamily: "Poppins-Regular",
     fontSize: 14,
-    marginBottom: 3,
+  },
+  passwordInputContainer: {
+    position: "relative",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    color: "#D5305A",
   },
   registerButton: {
     backgroundColor: "#D5305A",
@@ -279,15 +375,5 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     marginTop: 10,
     marginBottom: 20,
-  },
-  passwordInputContainer: {
-    position: "relative",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: 10,
-    top: "50%",
-    transform: [{ translateY: -12 }],
-    color: "#D5305A",
   },
 });

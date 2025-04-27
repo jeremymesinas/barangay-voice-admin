@@ -4,6 +4,7 @@ import { useFonts } from "expo-font";
 import ProfileCard from "../../components/ProfileCard";
 import ActionButton from "../../components/ActionButton";
 import AnnouncementCard from "../../components/AnnouncementCard";
+import { router } from "expo-router";
 
 export default function LandingPage() {
   const [fontsLoaded] = useFonts({
@@ -49,12 +50,12 @@ export default function LandingPage() {
             <ActionButton
               title="CONCERNS"
               color="#E4F1AC"
-              onPress={() => alert("Concerns Clicked")}
+              onPress={() => router.push('/concern')}
             />
             <ActionButton
               title="EMERGENCY RESPONSE"
               color="#E4F1AC"
-              onPress={() => alert("Emergency Clicked")}
+              onPress={() => router.push('/emergency')}
             />
           </View>
 

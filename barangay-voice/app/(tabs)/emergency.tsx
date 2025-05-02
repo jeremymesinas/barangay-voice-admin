@@ -42,11 +42,14 @@ export default function EmergencyResponseScreen() {
   return (
     <View style={styles.wrapper}>
       {/* Header */}
-      <View style={styles.header}>
-        <SafeAreaView style={styles.headerContent}>
-          <Text style={styles.headerText}>BARANGAY{'\n'}VOICE</Text>
-          <Image source={require('@/assets/images/banner.png')} style={styles.flagIcon} />
-        </SafeAreaView>
+      <View style={styles.topHalf}>
+        <View>
+          <Text style={styles.topLeftText}>BARANGAY{"\n"}VOICE</Text>
+        </View>
+        <Image
+          source={require('@/assets/images/barangay-voice.png')}
+          style={styles.topRightImage}
+        />
       </View>
 
       <SafeAreaView style={styles.container}>
@@ -103,6 +106,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  topHalf: {
+    backgroundColor: "#A7D477",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
   header: {
     backgroundColor: '#88C057',
     paddingTop: Platform.OS === 'android' ? 40 : 0,
@@ -146,6 +157,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center',    
     flexDirection: 'row',    
+  },
+  topLeftText: {
+    fontFamily: "Anton-Regular",
+    fontSize: 30,
+    color: "white",
+    textShadowColor: "black",
+    textShadowOffset: { width: 1, height: 1 },
+    paddingLeft: 10,
+  },
+  topRightImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+    marginRight: 10,
   },
   bannerText: {
     color: '#fff',

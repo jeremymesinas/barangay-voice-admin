@@ -1,13 +1,46 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { logoutUser } from '../../scripts/account-actions';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { fetchBarangayById } from '../../scripts/barangay-actions';
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUserBarangay } = useAuth();
+  const [loadingBarangay, setLoadingBarangay] = useState(true);
 
+  useEffect(() => {
+    console.log('Current user:', user); // Check user object structure
+    console.log('Barangay ID:', user?.barangay_id); // Verify ID exists
+  
+    const loadBarangayData = async () => {
+      if (user?.barangay_id) {
+        console.log('Fetching barangay for ID:', user.barangay_id);
+        try {
+          const barangay = await fetchBarangayById(user.barangay_id);
+          console.log('Fetched barangay:', barangay);
+          
+          if (barangay) {
+            updateUserBarangay(barangay);
+          } else {
+            console.warn('No barangay found with ID:', user.barangay_id);
+          }
+        } catch (error) {
+          console.error('Fetch error:', error);
+        } finally {
+          setLoadingBarangay(false);
+        }
+      } else {
+        console.warn('No barangay_id found on user');
+        setLoadingBarangay(false);
+      }
+    };
+  
+    loadBarangayData();
+  }, [user?.barangay_id, updateUserBarangay]);
+  
   const handleLogout = async () => {
     try {
       const response = await logoutUser();
@@ -27,10 +60,16 @@ export default function Profile() {
       <ScrollView contentContainerStyle={styles.container}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
+          <Image
+            source={require("../../assets/images/barangay-voice.png")}
+            style={styles.topRightImage}
+          />
           <Text style={styles.profileName}>
             {user?.first_name || 'First'} {user?.last_name || 'Last'}
           </Text>
-          <Text style={styles.profileLocation}>Barangay Maclab, Quezon City</Text>
+          <Text style={styles.profileLocation}>
+      {loadingBarangay ? 'Loading location...' : `Barangay ${user?.barangay?.name || 'N/A'}, ${user?.barangay?.city || 'N/A'}`}
+        </Text>
         </View>
 
         {/* Profile Edit Section */}
@@ -151,5 +190,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: 'Poppins-Regular',
+  },
+  topRightImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+    marginRight: 10,
   },
 });

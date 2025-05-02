@@ -215,14 +215,6 @@ export default function ConcernScreen() {
             ))}
           </View>
 
-          {/* <TextInput
-            style={styles.input}
-            placeholderTextColor="#808080"
-            placeholder="Enter your Phone Number or Email (Optional)"
-            value={contact}
-            onChangeText={setContact}
-          /> */}
-
           <TouchableOpacity 
             style={styles.submitBtn} 
             onPress={handleSubmit}

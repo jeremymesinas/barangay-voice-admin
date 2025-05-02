@@ -18,14 +18,6 @@ export default function LandingPage() {
     StatusBar.setHidden(false); 
   }, []);
 
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
   return (
   // <ProtectedRoute>
     <SafeAreaView style={styles.safeContainer}>
@@ -45,6 +37,13 @@ export default function LandingPage() {
               style={styles.topRightImage}
             />
           </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Welcome to BarangayVoice</Text>
+          <Text style={styles.headerSubtitle}>Your connection to community safety & support</Text>
+        </View>
 
           <ProfileCard />
 
@@ -65,75 +64,81 @@ export default function LandingPage() {
             <Text style={styles.header}>Announcements!</Text>
           </View>
 
-          <AnnouncementCard
-            title="Barangay Health Center Schedule"
-            description="The Barangay Health Center will be open for free health consultations every Sunday from 8:00 am to 11:00 am. Please bring your health records."
-          />
-          <AnnouncementCard
-            title="Clean-up Drive"
-            description="A barangay-wide clean-up drive will be held on March 25, 2025, at Maginhawa Street."
-          />
-          <AnnouncementCard
-            title="Traffic Advisory"
-            description="Santos Street will be closed for repairs from March 20 to April 2."
-          />
-
-          <View style={{ height: 100 }} />
-        </ScrollView>
-      </View>
+        {/* Tip */}
+        <Text style={styles.tip}>
+          ✅ Tip: Stay alert and know your emergency routes!
+        </Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeContainer: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: '#fff',
   },
   container: {
-    flex: 1,
-    height: "100%",
-  },
-  scrollContent: {
-    flexGrow: 1,
+    paddingHorizontal: 20,
+    backgroundColor: '#f9f9f9',
     paddingBottom: 20,
   },
-  announcements: {
-    backgroundColor: "#E4F1AC",
-    alignItems: "center",
-    padding: 20,
-    borderRadius: 10,
-  },
-  actionButtonContainer: {
-    paddingHorizontal: 20,
-  },
-  topHalf: {
-    backgroundColor: "#A7D477",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  topLeftText: {
-    fontFamily: "Anton-Regular",
-    fontSize: 30,
-    color: "white",
-    textShadowColor: "black",
-    textShadowOffset: { width: 1, height: 1 },
-    paddingLeft: 10,
-  },
-  topRightImage: {
-    width: 50,
-    height: 50,
-    resizeMode: "contain",
-    marginRight: 10,
-  },
   header: {
-    fontFamily: "Poppins-Regular",
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#000",
-    marginTop: 20,
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 4,
+  },
+  emergencyBtn: {
+    backgroundColor: '#EA3A57',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  emergencyText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333',
+  },
+  card: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  cardContent: {
+    fontSize: 14,
+    color: '#555',
+  },
+  tip: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 30,
+    fontStyle: 'italic',
   },
 });

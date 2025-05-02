@@ -143,7 +143,7 @@ export default function ConcernScreen() {
         />
 
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-          <Text style={styles.submitText}>SUBMIT</Text>
+          <Text style={styles.submitText}>Submit</Text>
         </TouchableOpacity>
       </View>
 
@@ -199,7 +199,6 @@ const pickerStyles = {
     backgroundColor: '#F5F5F5',
     color: 'black',
     fontSize: 16,
-    fontFamily: 'Poppins-Regular',
   },
   inputAndroid: {
     paddingVertical: 12,
@@ -210,7 +209,6 @@ const pickerStyles = {
     backgroundColor: '#F5F5F5',
     color: 'black',
     fontSize: 16,
-    fontFamily: 'Poppins-Regular',
   },
 };
 
@@ -233,7 +231,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: '#fff',
-    fontFamily: 'Anton-Regular',
+    fontWeight: 'bold',
     fontSize: 20,
     lineHeight: 24,
   },
@@ -259,7 +257,7 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     color: '#fff',
-    fontFamily: 'Anton-Regular',
+    fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
   },
@@ -269,14 +267,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: 'Anton-Regular',
+    fontWeight: 'bold',
     color: '#EA3A57',
     textAlign: 'center',
     marginBottom: 10,
   },
   subtext: {
     fontSize: 13,
-    fontFamily: 'Poppins-Regular',
     color: '#000',
     textAlign: 'center',
     marginBottom: 20,
@@ -288,7 +285,6 @@ const styles = StyleSheet.create({
     padding: Platform.OS === 'ios' ? 15 : 10,
     marginBottom: 15,
     backgroundColor: '#F5F5F5',
-    fontFamily: 'Poppins-Regular',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -301,10 +297,8 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
-    fontFamily: 'Poppins-Regular',
   },
   label: {
-    fontFamily: 'Poppins-Regular',
     fontWeight: 'bold',
     marginBottom: 8,
   },
@@ -330,14 +324,12 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   severityText: {
-    fontFamily: 'Poppins-Regular',
     fontWeight: 'bold',
     color: '#000',
   },
   severityDescription: {
     fontSize: 8,
     color: '#000',
-    fontFamily: 'Poppins-Regular',
     marginTop: 5,
     textAlign: 'center',
   },
@@ -354,8 +346,8 @@ const styles = StyleSheet.create({
   },
   submitText: {
     color: '#fff',
-    fontFamily: 'Anton-Regular',
-    fontSize: 30,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   modalOverlay: {
     flex: 1,
@@ -373,14 +365,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontFamily: 'Anton-Regular',
+    fontWeight: 'bold',
     color: '#EA3A57',
     marginBottom: 15,
     textAlign: 'center',
   },
   modalMessage: {
     fontSize: 14,
-    fontFamily: 'Poppins-Regular',
     color: '#333',
     textAlign: 'center',
     marginBottom: 20,
@@ -393,7 +384,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: '#000',
-    fontFamily: 'Poppins-Regular',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   modalDivider: {
@@ -402,16 +393,19 @@ const styles = StyleSheet.create({
     width: '100%',
     marginVertical: 15,
   },
+  
   modalButtonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
   },
+  
   modalButtonHalf: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
   },
+  
   verticalDivider: {
     width: 1,
     backgroundColor: '#ccc',
@@ -420,5 +414,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#EA3A57',
   },
+  
 });
-

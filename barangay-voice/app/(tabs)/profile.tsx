@@ -1,27 +1,58 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, Pressable, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/contexts/AuthContext';
+import { logoutUser } from '../../scripts/account-actions';
+import { router } from 'expo-router';
 
 export default function Profile() {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      const response = await logoutUser();
+      if (response.error) {
+        Alert.alert('Logout Failed', response.error);
+      } else {
+        logout();
+        router.replace('/LogIn');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred during logout');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          <Image
-            source={{ uri: 'https://www.example.com/profile-image.jpg' }}
-            style={styles.profileImage}
-          />
-          <Text style={styles.profileName}>John Doe</Text>
+          <Text style={styles.profileName}>
+            {user?.first_name || 'First'} {user?.last_name || 'Last'}
+          </Text>
           <Text style={styles.profileLocation}>Barangay Maclab, Quezon City</Text>
         </View>
 
         {/* Profile Edit Section */}
         <View style={styles.editSection}>
           <Text style={styles.sectionTitle}>Edit Profile</Text>
-          <TextInput style={styles.inputField} placeholder="Full Name" />
-          <TextInput style={styles.inputField} placeholder="Email Address" />
-          <TextInput style={styles.inputField} placeholder="Phone Number" />
+          <TextInput 
+            style={styles.inputField} 
+            placeholder="Full Name" 
+            value={`${user?.first_name || ''} ${user?.last_name || ''}`}
+            editable={false}
+          />
+          <TextInput 
+            style={styles.inputField} 
+            placeholder="Email Address" 
+            value={user?.email || ''}
+            editable={false}
+          />
+          <TextInput 
+            style={styles.inputField} 
+            placeholder="Phone Number" 
+            // Add phone number if available in your user object
+          />
           <Pressable style={styles.saveButton}>
             <Text style={styles.saveButtonText}>Save Changes</Text>
           </Pressable>
@@ -33,8 +64,11 @@ export default function Profile() {
           <Pressable style={styles.settingsButton}>
             <Text style={styles.settingsButtonText}>Change Password</Text>
           </Pressable>
-          <Pressable style={styles.settingsButton}>
-            <Text style={styles.settingsButtonText}>Log Out</Text>
+          <Pressable 
+            style={styles.settingsButton} 
+            onPress={handleLogout}
+          >
+            <Text style={[styles.settingsButtonText, { color: '#EA3A57' }]}>Log Out</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -54,22 +88,18 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom: 30,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
+    marginVertical: 30,
   },
   profileName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Poppins-Regular',
   },
   profileLocation: {
     fontSize: 16,
     color: '#666',
+    fontFamily: 'Poppins-Regular',
   },
   editSection: {
     marginBottom: 30,
@@ -79,6 +109,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 10,
     color: '#333',
+    fontFamily: 'Poppins-Regular',
   },
   inputField: {
     backgroundColor: '#fff',
@@ -91,17 +122,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
+    fontFamily: 'Poppins-Regular',
   },
   saveButton: {
     backgroundColor: '#EA3A57',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Poppins-Regular',
   },
   settingsSection: {
     marginTop: 20,
@@ -114,8 +148,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingsButtonText: {
-    color: '#333',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Poppins-Regular',
   },
 });

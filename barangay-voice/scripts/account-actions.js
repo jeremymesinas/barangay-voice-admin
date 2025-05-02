@@ -1,6 +1,5 @@
 
 import { createClient } from '@supabase/supabase-js';
-// import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from 'react-native-dotenv';
 
 const supabaseUrl = 'https://kfrjzutpdbffwhejqshm.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmcmp6dXRwZGJmZndoZWpxc2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxOTcyOTEsImV4cCI6MjA2MDc3MzI5MX0.mEI6muSCuplnHMpyetNzunovhnf0T9FesKkC3Apdgt8';
@@ -56,7 +55,7 @@ export async function registerUser({ email, password, firstName, middleName, las
   return { success: true, otp_code };
 }
 
-// account-actions.js
+
 export async function loginUser({ email, password }) {
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email,
@@ -86,4 +85,42 @@ export async function loginUser({ email, password }) {
       last_name: profileData.last_name
     }
   };
+}
+
+export async function logoutUser() {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    return { error: error.message };
+  }
+  return { success: true };
+}
+
+export async function submitConcern({
+  concern_header,
+  concern_category,
+  concern_content,
+  address,
+  importance_level,
+  // contact_info,
+  user_id
+}) {
+  try {
+    const { data, error } = await supabase
+      .from('concerns')
+      .insert([{
+        concern_header,
+        concern_category,
+        concern_content,
+        address,
+        importance_level,
+        // contact_info,
+        user_id
+      }])
+      .select();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
 }

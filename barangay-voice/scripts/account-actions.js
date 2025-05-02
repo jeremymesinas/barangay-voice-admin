@@ -2,9 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 // import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from 'react-native-dotenv';
 
-const supabaseUrl='https://kfrjzutpdbffwhejqshm.supabase.co';
-const supabaseAnonKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmcmp6dXRwZGJmZndoZWpxc2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxOTcyOTEsImV4cCI6MjA2MDc3MzI5MX0.mEI6muSCuplnHMpyetNzunovhnf0T9FesKkC3Apdgt8';
-const serviceRoleKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmcmp6dXRwZGJmZndoZWpxc2htIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTE5NzI5MSwiZXhwIjoyMDYwNzczMjkxfQ.mdQPhCkTe00_f4WpdoG-KpgOuhat5-AbHryry8c-AXo';
+const supabaseUrl = 'https://kfrjzutpdbffwhejqshm.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmcmp6dXRwZGJmZndoZWpxc2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxOTcyOTEsImV4cCI6MjA2MDc3MzI5MX0.mEI6muSCuplnHMpyetNzunovhnf0T9FesKkC3Apdgt8';
+const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmcmp6dXRwZGJmZndoZWpxc2htIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTE5NzI5MSwiZXhwIjoyMDYwNzczMjkxfQ.mdQPhCkTe00_f4WpdoG-KpgOuhat5-AbHryry8c-AXo';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
@@ -56,15 +56,34 @@ export async function registerUser({ email, password, firstName, middleName, las
   return { success: true, otp_code };
 }
 
+// account-actions.js
 export async function loginUser({ email, password }) {
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  if (error) {
-    return { error: error.message };
+  if (authError) {
+    return { error: authError.message };
   }
 
-  return { success: true, user: data.user };
+  // Fetch user profile data
+  const { data: profileData, error: profileError } = await supabase
+    .from('users')
+    .select('first_name, last_name')
+    .eq('auth_id', authData.user.id)
+    .single();
+
+  if (profileError) {
+    return { error: profileError.message };
+  }
+
+  return {
+    success: true,
+    user: {
+      ...authData.user,
+      first_name: profileData.first_name,
+      last_name: profileData.last_name
+    }
+  };
 }

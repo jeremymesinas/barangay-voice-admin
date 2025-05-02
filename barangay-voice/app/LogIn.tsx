@@ -13,6 +13,7 @@ export default function LogIn() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const [error, setError] = useState("");
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins.ttf"),
@@ -27,19 +28,35 @@ export default function LogIn() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      alert("Please enter both email and password.");
-      console.log("Please enter both email and password.");
+      setError("Please enter both email and password.");
       return;
     }
-
+  
+    setError("");
     setLoading(true);
-    const response = await loginUser({ email, password });
-    setLoading(false);
-
-    if (response.error) {
-      alert("Login Failed");
-    } else {
-      login(); 
+    
+    try {
+      const response = await loginUser({ email, password });
+      
+      if (response.error) {
+        setError(response.error);
+        Alert.alert("Login Failed", response.error);
+      } else if (response.user) {
+        login({
+          id: response.user.id,
+          email: response.user.email || email, // Fallback to the email they entered
+          first_name: response.user.first_name || '', // Fallback to empty string
+          last_name: response.user.last_name || ''    // Fallback to empty string
+        });
+      } else {
+        setError("Invalid response from server");
+        Alert.alert("Error", "Invalid response from server");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+      Alert.alert("Error", "An unexpected error occurred");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +69,10 @@ export default function LogIn() {
       </View>
 
       <View style={styles.bottomHalf}>
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
+
         <View style={styles.inputContainer}>
           <Image source={require("../assets/images/user.png")} style={styles.icon} />
           <TextInput
@@ -59,7 +80,10 @@ export default function LogIn() {
             placeholder="Email"
             keyboardType="email-address"
             autoCapitalize="none"
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              setError("");
+            }}
             value={email}
           />
         </View>
@@ -71,7 +95,10 @@ export default function LogIn() {
             placeholder="Password"
             secureTextEntry
             autoCapitalize="none"
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              setError("");
+            }}
             value={password}
           />
         </View>
@@ -80,14 +107,21 @@ export default function LogIn() {
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? "Logging in..." : "LOGIN"}</Text>
+        <TouchableOpacity 
+          style={[styles.button, loading && styles.disabledButton]} 
+          onPress={handleLogin} 
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>LOGIN</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -144,11 +178,23 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 80,
     borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 50,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 30,
     fontFamily: "Anton-Regular",
     textAlign: "center",
+  },
+  errorText: {
+    color: "#F72C5B",
+    fontFamily: "Poppins-Regular",
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });

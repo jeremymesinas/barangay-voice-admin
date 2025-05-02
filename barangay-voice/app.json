@@ -9,9 +9,20 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+    "NSLocationWhenInUseUsageDescription": "This app needs access to your location for emergency services.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location at all times for emergency services.",
+    "UIBackgroundModes": ["location"]
+  }
     },
     "android": {
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

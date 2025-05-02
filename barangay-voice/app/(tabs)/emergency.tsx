@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,16 +13,103 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import OngoingCall from '../ongoingcall';
+import { Linking } from 'react-native';
 
 export default function EmergencyResponseScreen() {
+  const [address, setAddress] = useState<string | null>(null);
   const [isCalling, setIsCalling] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const callCancelledRef = useRef(false); 
+  const [location, setLocation] = useState<{
+    coords: {
+      latitude: number;
+      longitude: number;
+      accuracy: number | null;  // accuracy can be null
+      // ... other coordinate properties you might use
+    };
+    timestamp: number;
+  } | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const callCancelledRef = useRef(false);
   const router = useRouter();
   
-  const handleCall = () => {
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+  
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+      
+      // Add reverse geocoding here
+      const reverseGeocode = async () => {
+        try {
+          const addresses = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+          
+          if (addresses.length > 0) {
+            const firstAddress = addresses[0];
+            const formattedAddress = [
+              firstAddress.street,
+              firstAddress.city,
+              firstAddress.region,
+              firstAddress.postalCode,
+              firstAddress.country
+            ].filter(Boolean).join(', ');
+            
+            setAddress(formattedAddress);
+          }
+        } catch (error) {
+          console.warn('Reverse geocoding error:', error);
+        }
+      };
+      
+      await reverseGeocode();
+    })();
+  }, []);
+
+
+  const handleCall = async () => {
     callCancelledRef.current = false;
     setIsCalling(true);
+  
+    try {
+      const freshLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      setLocation(freshLocation);
+      
+      // Reverse geocode the fresh location
+      const addresses = await Location.reverseGeocodeAsync({
+        latitude: freshLocation.coords.latitude,
+        longitude: freshLocation.coords.longitude,
+      });
+      
+      let formattedAddress = "Address unavailable";
+      if (addresses.length > 0) {
+        formattedAddress = [
+          addresses[0].street,
+          addresses[0].city,
+          addresses[0].region,
+          addresses[0].postalCode,
+          addresses[0].country
+        ].filter(Boolean).join(', ');
+        
+        setAddress(formattedAddress);
+      }
+      
+      console.log('Emergency location:', {
+        coords: freshLocation.coords,
+        address: formattedAddress // Now properly defined
+      });
+      
+    } catch (error) {
+      console.warn('Error:', error);
+    }
   
     setTimeout(() => {
       if (!callCancelledRef.current) {
@@ -29,7 +118,6 @@ export default function EmergencyResponseScreen() {
       }
     }, 3000);
   };
-  
 
   if (isConnected) {
     return <OngoingCall onEndCall={() => {
@@ -91,10 +179,38 @@ export default function EmergencyResponseScreen() {
           )}
 
           <View style={styles.locationBox}>
-            <Text style={styles.locationText}>
-              📍 938 Aurora Blvd, Cubao, Quezon City, 1109 Metro Manila
-            </Text>
+            {errorMsg ? (
+              <Text style={styles.locationText}>📍 Location unavailable: {errorMsg}</Text>
+            ) : location ? (
+              <>
+                <Text style={styles.locationText}>
+                  📍 Lat: {location.coords.latitude.toFixed(4)}, 
+                  Long: {location.coords.longitude.toFixed(4)}
+                  {'\n'}
+                  {/* Accuracy: {location.coords.accuracy ? `${location.coords.accuracy.toFixed(0)} meters` : 'Unknown'} */}
+                </Text>
+                {address && (
+                  <Text style={[styles.locationText, { marginTop: 8 }]}>
+                    🏠 {address}
+                  </Text>
+                )}
+              </>
+            ) : (
+              <Text style={styles.locationText}>📍 Getting your location...</Text>
+            )}
           </View>
+            <TouchableOpacity 
+            onPress={() => {
+              if (location) {
+                const url = `https://www.google.com/maps/search/?api=1&query=${location.coords.latitude},${location.coords.longitude}`;
+                Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+              }
+            }}
+          >
+            <Text style={[styles.locationText, { color: '#1a73e8', textDecorationLine: 'underline' }]}>
+              View on Google Maps
+            </Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>

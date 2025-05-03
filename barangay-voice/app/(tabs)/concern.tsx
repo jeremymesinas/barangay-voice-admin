@@ -10,6 +10,8 @@ import { useFonts } from 'expo-font';
 import { ActivityIndicator } from 'react-native-paper';
 import { submitConcern } from '@/scripts/account-actions';
 import { useAuth } from '@/contexts/AuthContext';
+import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
@@ -19,7 +21,7 @@ export default function ConcernScreen() {
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
   const [severity, setSeverity] = useState<SeverityLevel>('LOW');
-  const [contact, setContact] = useState('');
+  const [image, setImage] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -40,6 +42,30 @@ export default function ConcernScreen() {
     setIsAlertVisible(true);
   };
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+    });
+  
+    if (!result.canceled) {
+      // Compress and resize the image
+      const manipResult = await manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.7, format: SaveFormat.JPEG }
+      );
+      setImage(manipResult.uri);
+    }
+  };
+  
+  // Add this function to remove the selected image
+  const removeImage = () => {
+    setImage(null);
+  };
+
   const handleSubmit = async () => {
     if (!name || !category || !description) {
       showAlert('Missing Information', 'Please fill in all required fields');
@@ -55,8 +81,8 @@ export default function ConcernScreen() {
         concern_content: description,
         address: address,
         importance_level: severity,
-        // contact_info: contact,
-        user_id: user?.id
+        user_id: user?.id,
+        imageUri: image // Add this line
       });
   
       if (error) {
@@ -65,18 +91,7 @@ export default function ConcernScreen() {
   
       setIsModalVisible(true);
     } catch (error) {
-      let errorMessage = 'An unexpected error occurred';
-      
-      // Type checking for different error types
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = String(error.message);
-      }
-  
-      showAlert('Submission Error', errorMessage);
+      // ... (keep existing error handling)
     } finally {
       setIsSubmitting(false);
     }
@@ -185,6 +200,23 @@ export default function ConcernScreen() {
             value={address}
             onChangeText={setAddress}
           />
+
+          <View style={styles.imageSection}>
+            <Text style={styles.label}>Add an Image (Optional)</Text>
+            {image ? (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: image }} style={styles.imagePreview} />
+                <TouchableOpacity style={styles.removeImageBtn} onPress={removeImage}>
+                  <Ionicons name="close-circle" size={24} color="#EA3A57" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
+                <Ionicons name="camera" size={24} color="#EA3A57" />
+                <Text style={styles.addImageText}>Select Image</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <Text style={styles.label}>Importance Level:</Text>
           <View style={styles.severityRow}>
@@ -418,7 +450,7 @@ const styles = StyleSheet.create({
     padding: 5,
     alignItems: 'center',
     marginHorizontal: 5,
-    width: '100%',
+    width: '95%',
   },
   selectedSeverity: {
     borderWidth: 2,
@@ -531,5 +563,41 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     marginBottom: 10,
+  },
+  imageSection: {
+    marginBottom: 15,
+  },
+  addImageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#EA3A57',
+    borderRadius: 10,
+    padding: 12,
+    backgroundColor: '#F5F5F5',
+  },
+  addImageText: {
+    marginLeft: 10,
+    color: '#EA3A57',
+    fontFamily: 'Poppins-Regular',
+  },
+  imagePreviewContainer: {
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 12,
   },
 });

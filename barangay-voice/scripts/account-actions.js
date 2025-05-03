@@ -101,26 +101,129 @@ export async function submitConcern({
   concern_content,
   address,
   importance_level,
-  // contact_info,
-  user_id
+  user_id,
+  imageUri
 }) {
   try {
+    // Validate required fields
+    if (!concern_header || !concern_category || !concern_content || !user_id) {
+      throw new Error('Missing required fields');
+    }
+
+    // Process image upload if provided
+    let imageUrl = null;
+    if (imageUri) {
+      try {
+        const fileExt = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileName = `concern_${Date.now()}.${fileExt}`;
+        const filePath = `user_${user_id}/${fileName}`;
+
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+
+        const { data, error } = await supabase
+          .storage
+          .from('concern-images')
+          .upload(filePath, blob, {
+            contentType: blob.type,
+            upsert: false
+          });
+
+        if (error) {
+          console.error('Storage upload error:', error);
+          throw new Error(`Image upload failed: ${error.message}`);
+        }
+
+        const { data: { publicUrl } } = supabase
+          .storage
+          .from('concern-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        // Continue without image if upload fails
+      }
+    }
+
+    // Insert concern data
     const { data, error } = await supabase
       .from('concerns')
       .insert([{
         concern_header,
         concern_category,
         concern_content,
-        address,
+        address: address || null,
         importance_level,
-        // contact_info,
-        user_id
+        user_id,
+        image_url: imageUrl,
+        status: 'pending'
       }])
       .select();
 
     if (error) throw error;
-    return { data, error: null };
+
+    return { data: data[0], error: null };
+
   } catch (error) {
-    return { data: null, error };
+    console.error('Submission error:', error);
+    return {
+      data: null,
+      error: {
+        message: error.message,
+        code: error.code || 'SUBMISSION_ERROR'
+      }
+    };
+  }
+}
+
+// Helper function for image upload
+async function handleImageUpload(imageUri, userId) {
+  if (!imageUri) return null;
+
+  try {
+    // Verify storage bucket exists
+    const { error: bucketError } = await supabase
+      .storage
+      .listBuckets();
+
+    if (bucketError) throw bucketError;
+
+    // Prepare file metadata
+    const fileExt = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = `concern_${Date.now()}.${fileExt}`;
+    const filePath = `user_${userId}/${fileName}`;
+
+    // Convert image to blob
+    const response = await fetch(imageUri);
+    if (!response.ok) throw new Error('Failed to fetch image');
+
+    const blob = await response.blob();
+
+    // Upload with proper content type
+    const { error: uploadError } = await supabase
+      .storage
+      .from('concern-images')
+      .upload(filePath, blob, {
+        contentType: blob.type,
+        upsert: false,
+        cacheControl: '3600'
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Get public URL with cache busting
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from('concern-images')
+      .getPublicUrl(filePath, {
+        download: false
+      });
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Image upload failed:', error);
+    // Re-throw with more context
+    throw new Error(`Image upload failed: ${error.message}`);
   }
 }

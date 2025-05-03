@@ -1,12 +1,10 @@
 import React from 'react';
  import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
  import Svg, { Circle, Path } from 'react-native-svg';
+import { useRouter } from 'expo-router';
  
  const Success: React.FC = () => {
-   const handleReturnToLogin = () => {
-     // Logic to navigate back to login screen
-   };
- 
+ const router=useRouter();
    return (
      <View style={styles.container}>
        <View style={styles.titleContainer}>
@@ -24,9 +22,9 @@ import React from 'react';
          <Text style={styles.message}>
            Congratulations! Your password has been changed. Click continue to login.
          </Text>
-         <TouchableOpacity onPress={handleReturnToLogin} style={styles.button}>
-           <Text style={styles.buttonText}>Return to Login</Text>
-         </TouchableOpacity>
+         <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText} onPress={() => router.push('/Login')}>Return to Login</Text>
+          </TouchableOpacity>
        </View>
      </View>
    );

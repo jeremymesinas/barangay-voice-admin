@@ -23,8 +23,7 @@ export default function EmergencyResponseScreen() {
     coords: {
       latitude: number;
       longitude: number;
-      accuracy: number | null;  // accuracy can be null
-      // ... other coordinate properties you might use
+      accuracy: number | null;  
     };
     timestamp: number;
   } | null>(null);
@@ -42,9 +41,7 @@ export default function EmergencyResponseScreen() {
   
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
-      
-      // Add reverse geocoding here
-      const reverseGeocode = async () => {
+            const reverseGeocode = async () => {
         try {
           const addresses = await Location.reverseGeocodeAsync({
             latitude: location.coords.latitude,

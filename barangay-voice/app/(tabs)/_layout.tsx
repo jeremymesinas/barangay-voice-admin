@@ -42,7 +42,7 @@ export default function TabLayout() {
           tabBarLabel: () => null,
           title: 'Concerns',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="notifications" size={28} color={color} />
+            <Ionicons name="megaphone" size={28} color={color} />
           ),
         }}
       />
@@ -54,7 +54,7 @@ export default function TabLayout() {
           tabBarLabel: () => null,
           title: 'Emergency',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="megaphone" size={28} color={color} />
+            <Ionicons name="call" size={28} color={color} />
           ),
         }}
       />
@@ -66,7 +66,7 @@ export default function TabLayout() {
           tabBarLabel: () => null,
           title: 'Jobs',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="briefcase" size={28} color={color} /> 
+            <Ionicons name="notifications" size={28} color={color} /> 
           ),
         }}
       />

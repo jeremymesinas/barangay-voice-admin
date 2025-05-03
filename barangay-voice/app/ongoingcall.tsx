@@ -34,11 +34,14 @@ export default function OngoingCall({ onEndCall }: Props) {
     <ScrollView style={styles.scrollArea}>
       <View style={styles.wrapper}>
         {/* Header Section */}
-        <View style={styles.header}>
-          <SafeAreaView style={styles.headerContent}>
-            <Text style={styles.headerText}>BARANGAY{'\n'}VOICE</Text>
-            <Image source={require('@/assets/images/banner.png')} style={styles.flagIcon} />
-          </SafeAreaView>
+        <View style={styles.topHalf}>
+          <View>
+            <Text style={styles.topLeftText}>BARANGAY{"\n"}VOICE</Text>
+          </View>
+          <Image
+            source={require('@/assets/images/barangay-voice.png')}
+            style={styles.topRightImage}
+          />
         </View>
 
         {/* Red Banner */}
@@ -111,6 +114,29 @@ export default function OngoingCall({ onEndCall }: Props) {
 }
 
 const styles = StyleSheet.create({
+  topHalf: {
+    backgroundColor: "#A7D477",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    width: '100%',
+  },
+  topLeftText: {
+    fontFamily: "Anton-Regular",
+    fontSize: 30,
+    color: "white",
+    textShadowColor: "black",
+    textShadowOffset: { width: 1, height: 1 },
+    paddingLeft: 10,
+  },
+  topRightImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+    marginRight: 10,
+  },
   wrapper: {
     flex: 1,
     backgroundColor: '#fff',
@@ -155,7 +181,7 @@ const styles = StyleSheet.create({
     width: 285,
     height: 83,
     alignSelf: 'center',
-    marginTop: -30,
+    marginTop: 20, 
     marginBottom: 20,
     justifyContent: 'center',
     alignItems: 'center',

@@ -138,10 +138,7 @@ export default function EmergencyResponseScreen() {
       </View>
 
       <SafeAreaView style={styles.container}>
-        {/* Red Banner */}
-        <View style={styles.redBanner}>
-          <Text style={styles.bannerText}>EMERGENCY RESPONSE</Text>
-        </View>
+        <Text style={styles.headerTitle}>EMERGENCY RESPONSE</Text>
 
         {/* Content */}
         <View style={styles.content}>
@@ -284,6 +281,14 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: "contain",
     marginRight: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#EA3A57',
+    textAlign: 'center',
+    marginVertical: 20,
+    fontFamily: 'Poppins-Regular',
   },
   bannerText: {
     color: '#fff',

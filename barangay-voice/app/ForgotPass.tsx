@@ -1,29 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  Image, 
+  StyleSheet,
+  ActivityIndicator 
+} from 'react-native';
 import { useRouter } from "expo-router";
+import { useFonts } from 'expo-font';
 
-export default function ForgotPassword() {
+const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require('../assets/fonts/Poppins.ttf'),
     "Anton-Regular": require('../assets/fonts/Anton.ttf'),
   });
 
-const router = useRouter();
-
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = () => {
     if (!email) {
       setError('Please enter your email address');
       return;
@@ -35,30 +39,45 @@ const router = useRouter();
     }
 
     setError('');
+    setIsLoading(true);
 
-    // Simulate sending an OTP
-    alert('OTP sent successfully! Check your email.');
-    router.push('/OtpVerify');
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      alert('OTP sent successfully! Check your email.');
+      router.push('/OtpVerify');
+    }, 1500);
   };
 
   if (!fontsLoaded) {
-    return <Text>Loading fonts...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#A7D477" />
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image source={require("../assets/images/barangay-voice.png")} style={styles.logo} />
+        <Image 
+          source={require("../assets/images/barangay-voice.png")} 
+          style={styles.logo} 
+        />
       </View>
+
       <View style={styles.formContainer}>
         <Text style={styles.title}>Forgot Password?</Text>
-        <Text style={styles.instruction}>Enter email address for reset password</Text>
+        <Text style={styles.instruction}>
+          Enter email address for reset password
+        </Text>
 
         <View style={styles.inputContainer}>
           <TextInput
             placeholder="Email"
-            keyboardType='email-address'
-            autoCapitalize='none'
+            placeholderTextColor="#808080"
+            keyboardType="email-address"
+            autoCapitalize="none"
             value={email}
             onChangeText={(text) => {
               setEmail(text);
@@ -68,66 +87,66 @@ const router = useRouter();
           />
         </View>
 
-        {error && (
-          <Text style={styles.error}>{error}</Text>
-        )}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <View style={styles.sendContainer}>
-          <TouchableOpacity
-            onPress={handleSubmit}
-            style={styles.sendbtn}
-          >
-            <Text style={styles.sendtxt}>SEND</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text
-          style={styles.backsignIn}
-          onPress={() => router.push('/Login')}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          style={styles.sendButton}
+          disabled={isLoading}
         >
-          Back to Sign in
-        </Text>
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.sendButtonText}>SEND</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/LogIn')}>
+          <Text style={styles.backToSignIn}>Back to Sign in</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#A7D477'
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  },
   logoContainer: {
-    width: "100%",
-    backgroundColor: "#A7D477",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
   logo: {
-    width: 250,
-    height: 250,
-    resizeMode: "contain",
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
   },
   formContainer: {
     flex: 1,
     width: '100%',
-    height: 530,
     backgroundColor: 'white',
-    paddingTop: 30,
-    paddingHorizontal: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingTop: 40,
+    paddingHorizontal: 25,
     alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
     color: '#1E1E1E',
-    textAlign: 'center',
     marginBottom: 15,
-    fontFamily: "Poppins-Regular", 
-    lineHeight: 25
+    fontFamily: 'Poppins-Regular',
   },
   instruction: {
     fontSize: 14,
@@ -135,69 +154,50 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     paddingHorizontal: 15,
-    fontFamily: "Poppins-Regular",
-    fontStyle: 'normal',
-    fontWeight: '400' 
+    fontFamily: 'Poppins-Regular',
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: 'center',
-    marginBottom: 35,
-    width: "90%",
+    width: '100%',
     height: 50,
     borderColor: '#F72C5B',
-    borderWidth: 3,
-    borderRadius: 50,
-    paddingHorizontal: 15,
-    textAlign: 'left',
+    borderWidth: 2,
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
   inputEmail: {
-    width: "90%",
+    flex: 1,
     fontSize: 14,
-    fontFamily: "Poppins-Regular", 
-    color:  '#1E1E1E',
-    marginBottom: -5
+    fontFamily: 'Poppins-Regular',
+    color: '#1E1E1E',
   },
   error: {
     color: '#F72C5B',
-    padding: 5,
-    marginBottom: 25,
+    marginBottom: 15,
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
-    fontFamily: "Poppins-Regular", 
   },
-  sendContainer: {
-    width: 253,
-    height: 48,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  sendbtn: {
-    width: 253,
-    height: 48,
+  sendButton: {
+    width: '100%',
+    height: 50,
     backgroundColor: '#F72C5B',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
     marginBottom: 20,
   },
-  sendtxt: {
-    width: 253,
-    fontFamily: "Anton-Regular",  
-    fontSize: 30,
+  sendButtonText: {
+    fontFamily: 'Anton-Regular',
+    fontSize: 24,
     color: 'white',
-    fontWeight: '400',
-    flexShrink: 0,
-    textAlign: 'center',
-    marginTop: -7
+    letterSpacing: 1,
   },
-  backsignIn: {
-    padding: 15,
-    marginTop: 15,
-    color: 'black',
-    textAlign: 'center',
-    // opacity: 0.35,
+  backToSignIn: {
+    color: '#1E1E1E',
     fontSize: 14,
-    fontFamily: "Poppins-Regular" 
-  }
+    fontFamily: 'Poppins-Regular',
+    textDecorationLine: 'underline',
+  },
 });
+
+export default ForgotPassword;

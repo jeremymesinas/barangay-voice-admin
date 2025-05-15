@@ -6,8 +6,16 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createAnnouncement } from '@/scripts/account-actions';
+import { createAnnouncement, fetchAnnouncements } from '@/scripts/account-actions';
+
+interface Announcement {
+  announcement_header: string;
+  announcement_content: string;
+  created_at: string;
+}
+
 
 export default function AnnouncementScreen() {
  const [title, setTitle] = useState('');
@@ -17,6 +25,8 @@ export default function AnnouncementScreen() {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertTitle, setAlertTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
 
   const router = useRouter();
   const { user } = useAuth();
@@ -25,6 +35,32 @@ export default function AnnouncementScreen() {
     "Anton-Regular": require("../../assets/fonts/Anton.ttf"),
     "Poppins-Regular": require("../../assets/fonts/Poppins.ttf"),
   });
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      try {
+        setLoadingAnnouncements(true);
+        const data = await fetchAnnouncements();
+        setAnnouncements(data);
+      } catch (error) {
+        console.error('Failed to load announcements:', error);
+      } finally {
+        setLoadingAnnouncements(false);
+      }
+    };
+
+    loadAnnouncements();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   const showAlert = (title: string, message: string) => {
     setAlertTitle(title);
@@ -58,11 +94,6 @@ export default function AnnouncementScreen() {
       setIsSubmitting(false);
     }
   };
-
-  // const navigateToAnnouncements = () => {
-  //   setIsModalVisible(false);
-  //   router.push('/Announcements');
-  // };
 
   if (!fontsLoaded) {
     return (
@@ -195,6 +226,33 @@ export default function AnnouncementScreen() {
             </View>
           </View>
         </Modal>
+
+        <View style={styles.announcementsSection}>
+          <Text style={styles.sectionTitle}>RECENT ANNOUNCEMENTS</Text>
+          
+          {loadingAnnouncements ? (
+            <ActivityIndicator size="small" color="#EA3A57" />
+          ) : announcements.length === 0 ? (
+            <Text style={styles.noAnnouncementsText}>No announcements yet</Text>
+          ) : (
+            announcements.map((announcement, index) => (
+              <View key={index} style={styles.announcementCard}>
+                <View style={styles.announcementHeader}>
+                  <Text style={styles.announcementTitle}>
+                    {announcement.announcement_header}
+                  </Text>
+                  <Text style={styles.announcementDate}>
+                    {formatDate(announcement.created_at)}
+                  </Text>
+                </View>
+                <Text style={styles.announcementContent}>
+                  {announcement.announcement_content}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>            
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -344,5 +402,57 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     marginBottom: 10,
+  },
+  announcementsSection: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#EA3A57',
+    marginBottom: 15,
+    fontFamily: 'Poppins-Regular',
+  },
+  announcementCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  announcementHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  announcementTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+    fontFamily: 'Poppins-Regular',
+  },
+  announcementDate: {
+    fontSize: 12,
+    color: '#777',
+    fontFamily: 'Poppins-Regular',
+  },
+  announcementContent: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
+    fontFamily: 'Poppins-Regular',
+  },
+  noAnnouncementsText: {
+    textAlign: 'center',
+    color: '#777',
+    fontStyle: 'italic',
+    marginVertical: 20,
+    fontFamily: 'Poppins-Regular',
   },
 });

@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 import { ActivityIndicator } from 'react-native-paper';
 import { submitConcern } from '@/scripts/account-actions';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,30 +37,50 @@ export default function ConcernScreen() {
     "Poppins-Regular": require("../../assets/fonts/Poppins.ttf"),
   });
 
+  useEffect(() => {
+  (async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Camera permission is required to take photos!');
+    }
+  })();
+}, []);
+
   const showAlert = (title: string, message: string) => {
     setAlertTitle(title);
     setAlertMessage(message);
-    setIsAlertVisible(true);
+    setIsAlertVisible(true); 
   };
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+const pickImage = async (useCamera: boolean) => {
+  let result;
+
+  if (useCamera) {
+    result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.5,
     });
-  
-    if (!result.canceled) {
-      // Compress and resize the image
-      const manipResult = await manipulateAsync(
-        result.assets[0].uri,
-        [{ resize: { width: 800 } }],
-        { compress: 0.7, format: SaveFormat.JPEG }
-      );
-      setImage(manipResult.uri);
-    }
-  };
+  } else {
+    result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+    });
+  }
+
+  if (!result.canceled) {
+    // Compress and resize the image
+    const manipResult = await manipulateAsync(
+      result.assets[0].uri,
+      [{ resize: { width: 800 } }],
+      { compress: 0.7, format: SaveFormat.JPEG }
+    );
+    setImage(manipResult.uri);
+  }
+};
   
   // Add this function to remove the selected image
   const removeImage = () => {
@@ -201,22 +222,34 @@ export default function ConcernScreen() {
             onChangeText={setAddress}
           />
 
-          <View style={styles.imageSection}>
-            <Text style={styles.label}>Add an Image (Optional)</Text>
-            {image ? (
-              <View style={styles.imagePreviewContainer}>
-                <Image source={{ uri: image }} style={styles.imagePreview} />
-                <TouchableOpacity style={styles.removeImageBtn} onPress={removeImage}>
-                  <Ionicons name="close-circle" size={24} color="#EA3A57" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
-                <Ionicons name="camera" size={24} color="#EA3A57" />
-                <Text style={styles.addImageText}>Select Image</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+<View style={styles.imageSection}>
+  <Text style={styles.label}>Add an Image (Optional)</Text>
+  {image ? (
+    <View style={styles.imagePreviewContainer}>
+      <Image source={{ uri: image }} style={styles.imagePreview} />
+      <TouchableOpacity style={styles.removeImageBtn} onPress={removeImage}>
+        <Ionicons name="close-circle" size={24} color="#EA3A57" />
+      </TouchableOpacity>
+    </View>
+  ) : (
+    <View style={styles.imageButtonsContainer}>
+      <TouchableOpacity 
+        style={[styles.imageButton, styles.cameraButton]} 
+        onPress={() => pickImage(true)} // Open camera
+      >
+        <Ionicons name="camera" size={24} color="white" />
+        <Text style={styles.imageButtonText}>Take Photo</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.imageButton, styles.galleryButton]} 
+        onPress={() => pickImage(false)} // Open gallery
+      >
+        <Ionicons name="image" size={24} color="white" />
+        <Text style={styles.imageButtonText}>Choose from Gallery</Text>
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
 
           <Text style={styles.label}>Importance Level:</Text>
           <View style={styles.severityRow}>
@@ -600,4 +633,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.7)',
     borderRadius: 12,
   },
+  imageButtonsContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  gap: 10,
+},
+imageButton: {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 10,
+  padding: 12,
+},
+cameraButton: {
+  backgroundColor: '#EA3A57',
+},
+galleryButton: {
+  backgroundColor: '#4CAF50',
+},
+imageButtonText: {
+  marginLeft: 10,
+  color: 'white',
+  fontFamily: 'Poppins-Regular',
+},
 });

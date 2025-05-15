@@ -111,7 +111,7 @@ export async function submitConcern({
     }
 
     // Process image upload if provided
-    let imageUrl = null;
+    let imageUri = null;
     if (imageUri) {
       try {
         const fileExt = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
@@ -139,7 +139,7 @@ export async function submitConcern({
           .from('concern-images')
           .getPublicUrl(filePath);
 
-        imageUrl = publicUrl;
+        imageUri = publicUrl;
       } catch (uploadError) {
         console.error('Image upload failed:', uploadError);
         // Continue without image if upload fails
@@ -156,7 +156,7 @@ export async function submitConcern({
         address: address || null,
         importance_level,
         user_id,
-        image_url: imageUrl,
+        imageUri: imageUri,
         status: 'pending'
       }])
       .select();
@@ -227,3 +227,19 @@ async function handleImageUpload(imageUri, userId) {
     throw new Error(`Image upload failed: ${error.message}`);
   }
 }
+
+export const fetchUserConcerns = async (userId) => {
+  try {
+    const { data, error } = await supabase
+      .from('concerns')
+      .select('id, concern_header, created_at, status')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching concerns:', error);
+    return [];
+  }
+};

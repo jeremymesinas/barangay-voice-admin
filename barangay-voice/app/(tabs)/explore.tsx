@@ -1,21 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
   SafeAreaView,
-  Platform,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { fetchUserConcerns } from '@/scripts/account-actions';
 
+interface Concern {
+  id: string;
+  concern_header: string;
+  created_at: string;
+  status: 'PENDING' | 'RESOLVED';
+}
 
 export default function Report() {
+  const [reports, setReports] = useState<Concern[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const loadConcerns = async () => {
+      if (user?.id) {
+        setLoading(true);
+        const data = await fetchUserConcerns(user.id);
+        setReports(data);
+        setLoading(false);
+      }
+    };
+
+    loadConcerns();
+  }, [user?.id]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#EA3A57" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.wrapper}>
-      {/* Updated Header to match concern.tsx */}
+      {/* Header */}
       <View style={styles.topHalf}>
         <View>
           <Text style={styles.topLeftText}>BARANGAY{"\n"}VOICE</Text>
@@ -26,65 +69,66 @@ export default function Report() {
         />
       </View>
 
-      {/* Red Banner */}
       <Text style={styles.headerTitle}>YOUR REPORTS</Text>
 
-      {/* Content */}
       <SafeAreaView style={styles.contentWrapper}>
         <ScrollView contentContainerStyle={styles.content}>
-          {reportData.map((report, index) => (
-            <View key={index} style={styles.card}>
-              <Image source={report.icon} style={styles.avatar} />
-              <View style={styles.cardDetails}>
-                <Text style={styles.title}>{report.title}</Text>
-                <Text style={styles.meta}>{report.meta}</Text>
-                <Text
-                  style={[
-                    styles.status,
-                    report.status === 'PENDING' ? styles.pending : styles.resolved,
-                  ]}
+          {reports.length === 0 ? (
+            <Text style={styles.emptyMessage}>No reports found</Text>
+          ) : (
+            reports.map((report) => (
+              <View key={report.id} style={styles.card}>
+                <Image 
+                  source={require('@/assets/images/logo.png')} 
+                  style={styles.avatar} 
+                />
+                <View style={styles.cardDetails}>
+                  <Text style={styles.title}>{report.concern_header}</Text>
+                  <Text style={styles.meta}>{formatDate(report.created_at)}</Text>
+                  <Text
+                    style={[
+                      styles.status,
+                      report.status === 'PENDING' ? styles.pending : styles.resolved,
+                    ]}
+                  >
+                    {report.status}
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.viewButton} 
+                  onPress={() => router.push({
+                    pathname: '/ReportDetails',
+                    params: { concernId: report.id }
+                  })}
                 >
-                  {report.status}
-                </Text>
+                  <Text style={styles.viewText}>VIEW</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.viewButton} onPress={() => router.push('/ReportDetails')}>
-                <Text style={styles.viewText}>VIEW</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+            ))
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
-const reportData = [
-  {
-    icon: require('@/assets/images/logo.png'),
-    title: 'PATANGGAL NG MGA GRAFFITI',
-    meta: 'October 28, 6:20 PM',
-    status: 'PENDING',
-  },
-  {
-    icon: require('@/assets/images/logo.png'),
-    title: 'Amoy ihi yung kapitbahay ASAP',
-    meta: 'October 28, 6:20 PM',
-    status: 'PENDING',
-  },
-  {
-    icon: require('@/assets/images/logo.png'),
-    title: 'RANDOM PROBLEM',
-    meta: 'October 28, 6:20 PM',
-    status: 'RESOLVED',
-  },
-];
-
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: "#f8f8f8",
   },
-  // Updated header styles to match concern.tsx
+   loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+  },
+  emptyMessage: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#555',
+  },
   topHalf: {
     backgroundColor: "#A7D477",
     flexDirection: "row",

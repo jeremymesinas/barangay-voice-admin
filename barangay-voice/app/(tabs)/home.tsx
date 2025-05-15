@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from 'expo-router';
 import { useFonts } from "expo-font";
 import { 
   View, 
@@ -23,6 +24,7 @@ interface LocalConcern {
 }
 
 export default function AdminNotificationDashboard() {
+  const router = useRouter();
     const [fontsLoaded] = useFonts({
     "Anton-Regular": require("../../assets/fonts/Anton.ttf"),
     "Poppins-Regular": require("../../assets/fonts/Poppins.ttf"),
@@ -76,14 +78,18 @@ export default function AdminNotificationDashboard() {
     loadConcerns();
   }, [loadConcerns]);
 
-  const handleMarkAsRead = async (id: string) => {
-    const { error: markError } = await markConcernAsRead(id);
-    if (!markError) {
-      setConcerns(prev => prev.map(concern => (
-        concern.id === id ? { ...concern, read: true } : concern
-      )));
+const handleViewDetails = (concern: LocalConcern) => {
+  router.push({
+    pathname: '/ReportDetails',
+    params: {
+      header: concern.concern_header,
+      content: concern.concern_content,
+      date: concern.created_at,
+      id: concern.id,
+      status: 'PENDING' // You might want to add status to your concern interface
     }
-  };
+  });
+};
 
   const handleDeleteConcern = async (id: string) => {
     const { error: deleteError } = await deleteConcern(id);
@@ -161,12 +167,12 @@ export default function AdminNotificationDashboard() {
           }
         >
           {concerns.filter(c => !c.read).map(concern => (
-            <TouchableOpacity
-              key={concern.id}
-              style={styles.concernCard}
-              onPress={() => handleMarkAsRead(concern.id)}
-              onLongPress={() => handleDeleteConcern(concern.id)}
-            >
+<TouchableOpacity
+  key={concern.id}
+  style={styles.concernCard}
+  onPress={() => handleViewDetails(concern)}
+  onLongPress={() => handleDeleteConcern(concern.id)}
+>
               <View style={styles.concernIcon}>
                 <Ionicons name="alert-circle" size={24} color="#FF9800" />
               </View>

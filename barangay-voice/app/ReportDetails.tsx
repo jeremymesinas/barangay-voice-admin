@@ -65,14 +65,14 @@ export default function ReportDetails() {
             </Text>
 
             {/* Buttons */}
-            {/* <View style={styles.buttonRow}>
+            <View style={styles.buttonRow}>
               <TouchableOpacity style={styles.actionButton}>
                 <Text style={styles.buttonText}>RESPOND</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.buttonText}>MARK AS READ</Text>
+                <Text style={styles.buttonText}>MARK AS RESOLVED</Text>
               </TouchableOpacity>
-            </View> */}
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>

@@ -68,7 +68,7 @@ export default function Profile() {
             {user?.first_name || 'First'} {user?.last_name || 'Last'}
           </Text>
           <Text style={styles.profileLocation}>
-      {loadingBarangay ? 'Loading location...' : `Barangay ${user?.barangay?.name || 'N/A'}, ${user?.barangay?.city || 'N/A'}`}
+      {loadingBarangay ? 'Loading location...' : `Barangay Maclab, Quezon City`}
         </Text>
         </View>
 

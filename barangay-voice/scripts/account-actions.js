@@ -284,3 +284,30 @@ export const deleteConcern = async (concernId) => {
     return { error: error.message };
   }
 };
+
+export const createAnnouncement = async ({
+  announcement_header,
+  announcement_content,
+  // user_id
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from('announcements')
+      .insert([{
+        announcement_header,
+        announcement_content,
+        // user_id
+      }])
+      .select();
+
+    if (error) throw error;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error creating announcement:', error);
+    return {
+      data: null,
+      error: error.message || 'Failed to create announcement'
+    };
+  }
+};

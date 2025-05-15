@@ -1,28 +1,17 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView,
-  ScrollView, Platform, Image, Modal
+  ScrollView, Modal, ActivityIndicator, Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import RNPickerSelect from 'react-native-picker-select';
 import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
-import { useEffect } from 'react';
-import { ActivityIndicator } from 'react-native-paper';
-import { submitConcern } from '@/scripts/account-actions';
 import { useAuth } from '@/contexts/AuthContext';
-import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import { createAnnouncement } from '@/scripts/account-actions';
 
-type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-
-export default function ConcernScreen() {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
-  const [severity, setSeverity] = useState<SeverityLevel>('LOW');
-  const [image, setImage] = useState<string | null>(null);
+export default function AnnouncementScreen() {
+ const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -37,106 +26,43 @@ export default function ConcernScreen() {
     "Poppins-Regular": require("../../assets/fonts/Poppins.ttf"),
   });
 
-  useEffect(() => {
-  (async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Camera permission is required to take photos!');
-    }
-  })();
-}, []);
-
   const showAlert = (title: string, message: string) => {
     setAlertTitle(title);
     setAlertMessage(message);
-    setIsAlertVisible(true); 
-  };
-
-const pickImage = async (useCamera: boolean) => {
-  let result;
-
-  if (useCamera) {
-    result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.5,
-    });
-  } else {
-    result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.5,
-    });
-  }
-
-  if (!result.canceled) {
-    // Compress and resize the image
-    const manipResult = await manipulateAsync(
-      result.assets[0].uri,
-      [{ resize: { width: 800 } }],
-      { compress: 0.7, format: SaveFormat.JPEG }
-    );
-    setImage(manipResult.uri);
-  }
-};
-  
-  // Add this function to remove the selected image
-  const removeImage = () => {
-    setImage(null);
+    setIsAlertVisible(true);
   };
 
   const handleSubmit = async () => {
-    if (!name || !category || !description) {
+    if (!title || !content) {
       showAlert('Missing Information', 'Please fill in all required fields');
       return;
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
-      const { error } = await submitConcern({
-        concern_header: name,
-        concern_category: category,
-        concern_content: description,
-        address: address,
-        importance_level: severity,
-        user_id: user?.id,
-        imageUri: image // Add this line
+      const { error } = await createAnnouncement({
+        announcement_header: title,
+        announcement_content: content,
+        // user_id: user?.id || ''
       });
-  
+
       if (error) {
-        throw error;
+        throw new Error(error);
       }
-  
+
       setIsModalVisible(true);
-    } catch (error) {
-      // ... (keep existing error handling)
+    } catch (error: any) {
+      showAlert('Submission Error', error.message || 'Failed to create announcement');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getSeverityStyle = (level: SeverityLevel) => {
-    switch (level) {
-      case 'LOW':
-        return styles.severityLOW;
-      case 'MEDIUM':
-        return styles.severityMEDIUM;
-      case 'HIGH':
-        return styles.severityHIGH;
-      case 'CRITICAL':
-        return styles.severityCRITICAL;
-      default:
-        return styles.severityLOW;
-    }
-  };
-
-  const navigateToReport = () => {
-    setIsModalVisible(false);
-    router.push('/Report');
-  };
+  // const navigateToAnnouncements = () => {
+  //   setIsModalVisible(false);
+  //   router.push('/Announcements');
+  // };
 
   if (!fontsLoaded) {
     return (
@@ -150,13 +76,8 @@ const pickImage = async (useCamera: boolean) => {
     <SafeAreaView style={styles.safeContainer}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
-        bounces={false}
-        overScrollMode="never"
-        scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
         <View style={styles.topHalf}>
           <View>
             <Text style={styles.topLeftText}>BARANGAY{"\n"}VOICE</Text>
@@ -167,118 +88,32 @@ const pickImage = async (useCamera: boolean) => {
           />
         </View>
 
-        {/* Form Content */}
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>REPORT A CONCERN</Text>
+          <Text style={styles.title}>CREATE ANNOUNCEMENT</Text>
           <Text style={styles.subtext}>
-            Help us improve our barangay by reporting any issues or concerns you encounter.
-            Select a category, describe the issue, and add a location or photo if possible.
-            Our team will address it as soon as possible.
+            Share important information with the barangay community.
+            Write a clear title and detailed content for your announcement.
           </Text>
 
+          <Text style={styles.label}>Title *</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter subject line *"
+            placeholder="Enter announcement title"
             placeholderTextColor="#808080"
-            value={name}
-            onChangeText={setName}
+            value={title}
+            onChangeText={setTitle}
           />
 
-          <View style={styles.pickerContainer}>
-            <RNPickerSelect
-              onValueChange={(value) => setCategory(value)}
-              value={category}
-              placeholder={{ label: 'Select a Category *', value: null }}
-              items={[
-                { label: 'Waste and Sanitation', value: 'waste' },
-                { label: 'Health Concerns', value: 'health' },
-                { label: 'Road and Traffic Issues', value: 'road' },
-                { label: 'Environmental Concerns', value: 'environment' },
-                { label: 'Public Safety', value: 'safety' },
-                { label: 'Neighbor Concerns', value: 'neighbor' },
-                { label: 'Community Services', value: 'services' },
-                { label: 'Financial Assistance', value: 'finance' },
-                { label: 'Other (Please Specify)', value: 'other' },
-              ]}
-              style={pickerStyles}
-            />
-          </View>
-
+          <Text style={styles.label}>Content *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             multiline
-            numberOfLines={4}
+            numberOfLines={8}
             placeholderTextColor="#808080"
-            placeholder="Briefly explain your concern *"
-            value={description}
-            onChangeText={setDescription}
+            placeholder="Write your announcement content here"
+            value={content}
+            onChangeText={setContent}
           />
-
-          <TextInput
-            style={styles.input}
-            placeholderTextColor="#808080"
-            placeholder="Enter Address (Optional)"
-            value={address}
-            onChangeText={setAddress}
-          />
-
-<View style={styles.imageSection}>
-  <Text style={styles.label}>Add an Image (Optional)</Text>
-  {image ? (
-    <View style={styles.imagePreviewContainer}>
-      <Image source={{ uri: image }} style={styles.imagePreview} />
-      <TouchableOpacity style={styles.removeImageBtn} onPress={removeImage}>
-        <Ionicons name="close-circle" size={24} color="#EA3A57" />
-      </TouchableOpacity>
-    </View>
-  ) : (
-    <View style={styles.imageButtonsContainer}>
-      <TouchableOpacity 
-        style={[styles.imageButton, styles.cameraButton]} 
-        onPress={() => pickImage(true)} // Open camera
-      >
-        <Ionicons name="camera" size={24} color="white" />
-        <Text style={styles.imageButtonText}>Take Photo</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.imageButton, styles.galleryButton]} 
-        onPress={() => pickImage(false)} // Open gallery
-      >
-        <Ionicons name="image" size={24} color="white" />
-        <Text style={styles.imageButtonText}>Choose from Gallery</Text>
-      </TouchableOpacity>
-    </View>
-  )}
-</View>
-
-          <Text style={styles.label}>Importance Level:</Text>
-          <View style={styles.severityRow}>
-            {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as SeverityLevel[]).map((level) => (
-              <View key={level} style={styles.severityColumn}>
-                <TouchableOpacity
-                  style={[
-                    styles.severityBtn, 
-                    getSeverityStyle(level),
-                    severity === level && styles.selectedSeverity
-                  ]}
-                  onPress={() => setSeverity(level)}
-                >
-                  <Text style={[
-                    styles.severityText,
-                    severity === level && styles.selectedSeverityText
-                  ]}>
-                    {level}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.severityDescription}>
-                  {level === 'LOW' && 'Non-Urgent'}
-                  {level === 'MEDIUM' && 'Moderate Urgency'}
-                  {level === 'HIGH' && 'Immediate Attention\nNeeded'}
-                  {level === 'CRITICAL' && 'Emergency'}
-                </Text>
-              </View>
-            ))}
-          </View>
 
           <TouchableOpacity 
             style={styles.submitBtn} 
@@ -288,12 +123,11 @@ const pickImage = async (useCamera: boolean) => {
             {isSubmitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.submitText}>Submit</Text>
+              <Text style={styles.submitText}>PUBLISH ANNOUNCEMENT</Text>
             )}
           </TouchableOpacity>
         </View>
 
-        {/* Success Modal */}
         <Modal
           animationType="fade"
           transparent={true}
@@ -302,10 +136,10 @@ const pickImage = async (useCamera: boolean) => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>REQUEST SUBMITTED</Text>
+              <Text style={styles.modalTitle}>ANNOUNCEMENT PUBLISHED</Text>
               <Ionicons name="checkmark-circle" size={60} color="#4CAF50" style={styles.checkIcon} />
               <Text style={styles.modalMessage}>
-                Your report has been successfully submitted. Our team will check and respond as soon as possible.
+                Your announcement has been successfully published to the community.
               </Text>
 
               <View style={styles.modalDivider} />
@@ -322,16 +156,15 @@ const pickImage = async (useCamera: boolean) => {
 
                 <TouchableOpacity
                   style={styles.modalButtonHalf}
-                  onPress={navigateToReport} 
+                  // onPress={navigateToAnnouncements}
                 >
-                  <Text style={styles.modalButtonText}>VIEW STATUS</Text>
+                  <Text style={styles.modalButtonText}>VIEW ANNOUNCEMENTS</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </Modal>
 
-        {/* Error/Alert Modal */}
         <Modal
           animationType="fade"
           transparent={true}
@@ -366,31 +199,6 @@ const pickImage = async (useCamera: boolean) => {
     </SafeAreaView>
   );
 }
-
-const pickerStyles = {
-  inputIOS: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    backgroundColor: '#F5F5F5',
-    color: 'black',
-    fontSize: 16,
-    fontFamily: 'Poppins-Regular',
-  },
-  inputAndroid: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    backgroundColor: '#F5F5F5',
-    color: 'black',
-    fontSize: 16,
-    fontFamily: 'Poppins-Regular',
-  },
-};
 
 const styles = StyleSheet.create({
   safeContainer: {
@@ -442,84 +250,30 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: 'Poppins-Regular',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: Platform.OS === 'ios' ? 15 : 10,
-    marginBottom: 15,
-    backgroundColor: '#F5F5F5',
-    fontFamily: 'Poppins-Regular',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginBottom: 15,
-    backgroundColor: '#F5F5F5',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
   label: {
     fontWeight: 'bold',
     marginBottom: 8,
     fontFamily: 'Poppins-Regular',
   },
-  severityRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  severityColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  severityBtn: {
-    paddingVertical: 10,
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 10,
-    padding: 5,
-    alignItems: 'center',
-    marginHorizontal: 5,
-    width: '95%',
-  },
-  selectedSeverity: {
-    borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  selectedSeverityText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  severityText: {
-    fontWeight: 'bold',
-    color: '#000',
+    padding: 15,
+    marginBottom: 15,
+    backgroundColor: '#F5F5F5',
     fontFamily: 'Poppins-Regular',
   },
-  severityDescription: {
-    fontSize: 8,
-    color: '#000',
-    marginTop: 5,
-    textAlign: 'center',
-    fontFamily: 'Poppins-Regular',
+  textArea: {
+    height: 200,
+    textAlignVertical: 'top',
   },
-  severityLOW: { backgroundColor: '#4CAF50' },
-  severityMEDIUM: { backgroundColor: '#FFEB3B' },
-  severityHIGH: { backgroundColor: '#FF9800' },
-  severityCRITICAL: { backgroundColor: '#F44336' },
   submitBtn: {
     backgroundColor: '#EA3A57',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   submitText: {
     color: '#fff',
@@ -557,12 +311,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: 'Poppins-Regular',
   },
-  modalButton: {
-    backgroundColor: '#EA3A57',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-  },
   modalButtonText: {
     fontWeight: 'bold',
     fontSize: 16,
@@ -597,64 +345,4 @@ const styles = StyleSheet.create({
   checkIcon: {
     marginBottom: 10,
   },
-  imageSection: {
-    marginBottom: 15,
-  },
-  addImageBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#EA3A57',
-    borderRadius: 10,
-    padding: 12,
-    backgroundColor: '#F5F5F5',
-  },
-  addImageText: {
-    marginLeft: 10,
-    color: '#EA3A57',
-    fontFamily: 'Poppins-Regular',
-  },
-  imagePreviewContainer: {
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  imagePreview: {
-    width: '100%',
-    height: 200,
-  },
-  removeImageBtn: {
-    position: 'absolute',
-    top: 5,
-    right: 5,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 12,
-  },
-  imageButtonsContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  gap: 10,
-},
-imageButton: {
-  flex: 1,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: 10,
-  padding: 12,
-},
-cameraButton: {
-  backgroundColor: '#EA3A57',
-},
-galleryButton: {
-  backgroundColor: '#4CAF50',
-},
-imageButtonText: {
-  marginLeft: 10,
-  color: 'white',
-  fontFamily: 'Poppins-Regular',
-},
 });

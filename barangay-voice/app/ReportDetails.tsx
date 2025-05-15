@@ -5,26 +5,40 @@ import {
   StyleSheet,
   Image,
   SafeAreaView,
-  Platform,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ReportDetails() {
+  const params = useLocalSearchParams();
+  const { user } = useAuth();
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <View style={styles.wrapper}>
       {/* Header */}
-      <View style={styles.header}>
-        <SafeAreaView style={styles.headerContent}>
-          <Text style={styles.headerText}>BARANGAY{'\n'}VOICE</Text>
-          <Image source={require('@/assets/images/banner.png')} style={styles.flagIcon} />
-        </SafeAreaView>
+      <View style={styles.topHalf}>
+        <View>
+          <Text style={styles.topLeftText}>BARANGAY{"\n"}VOICE</Text>
+        </View>
+        <Image
+          source={require('@/assets/images/barangay-voice.png')}
+          style={styles.topRightImage}
+        />
       </View>
 
-      {/* Red Banner with Back Arrow and Title */}
-      <View style={styles.redBanner}>
-        <Text style={styles.bannerText}>REPORTS</Text>
-      </View>
+      <Text style={styles.headerTitle}>REPORT DETAILS</Text>
 
       {/* Content */}
       <SafeAreaView style={styles.container}>
@@ -33,17 +47,21 @@ export default function ReportDetails() {
             <View style={styles.reportHeader}>
               <Image source={require('@/assets/images/logo.png')} style={styles.avatar} />
               <View style={styles.reportMeta}>
-                <Text style={styles.reportTitle}>PATANGGAL NG MGA GRAFFITI</Text>
-                <Text style={styles.meta}>by: user1234507, October 28, 6:20 PM</Text>
+                <Text style={styles.reportTitle}>{params.header}</Text>
+                <Text style={styles.meta}>{formatDate(params.date as string)}</Text>
+                <Text
+                  style={[
+                    styles.status,
+                    params.status === 'PENDING' ? styles.pending : styles.resolved,
+                  ]}
+                >
+                  {params.status}
+                </Text>
               </View>
             </View>
 
             <Text style={styles.reportText}>
-            Magandang araw! Nais ko sanang ipabatid ang isang sitwasyon na nagdudulot ng abala sa aming komunidad. Napansin ko na may matinding amoy ng ihi mula sa bahay ng isang kapitbahay, na marahil ay dulot ng kanilang aso na hindi nililinis nang maayos. Ang amoy ay nagiging sanhi ng hindi komportableng kondisyon sa paligid.
-              {'\n\n'}
-              Nauunawaan ko na may mga pagkakataong ang ganitong sitwasyon ay maaaring hindi sinasadya, ngunit ito ay nagiging sanhi ng alalahanin sa mga residente sa paligid. Nais ko sanang humiling ng tulong mula sa barangay upang masolusyunan ang problemang ito.
-              {'\n\n'}
-              Umaasa ako na sa pamamagitan ng inyong tulong, makakahanap tayo ng paraan upang maayos ang sitwasyong ito para sa kapakanan ng lahat. Salamat sa inyong atensyon at pang-unawa.
+              {params.content}
             </Text>
 
             {/* Buttons */}
@@ -63,13 +81,55 @@ export default function ReportDetails() {
 }
 
 const styles = StyleSheet.create({
+  status: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  pending: {
+    color: '#f32d5d',
+  },
+  resolved: {
+    color: '#4CAF50',
+  },
   wrapper: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#f8f8f8",
+  },
+  // New header styles to match Report.tsx
+  topHalf: {
+    backgroundColor: "#A7D477",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  topLeftText: {
+    fontFamily: "Anton-Regular",
+    fontSize: 30,
+    color: "white",
+    textShadowColor: "black",
+    textShadowOffset: { width: 1, height: 1 },
+    paddingLeft: 10,
+  },
+  topRightImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+    marginRight: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#EA3A57',
+    textAlign: 'center',
+    marginVertical: 20,
+    fontFamily: 'Poppins-Regular',
   },
   header: {
     backgroundColor: '#88C057',
-    paddingTop: Platform.OS === 'android' ? 40 : 0,
+    // paddingTop: Platform.OS === 'android' ? 40 : 0,
     paddingBottom: 20,
     width: '100%',
   },

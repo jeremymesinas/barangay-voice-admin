@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { RefreshControl } from 'react-native';
 import {
   View,
   Text,
@@ -16,14 +17,35 @@ import { fetchUserConcerns } from '@/scripts/account-actions';
 interface Concern {
   id: string;
   concern_header: string;
+  concern_content: string;
   created_at: string;
   status: 'PENDING' | 'RESOLVED';
 }
 
 export default function Report() {
-  const [reports, setReports] = useState<Concern[]>([]);
+const [reports, setReports] = useState<Concern[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // Add refreshing state
   const { user } = useAuth();
+
+  const loadConcerns = async () => {
+    if (user?.id) {
+      setLoading(true);
+      const data = await fetchUserConcerns(user.id);
+      setReports(data);
+      setLoading(false);
+      setRefreshing(false); // Make sure to set refreshing to false when done
+    }
+  };
+
+  useEffect(() => {
+    loadConcerns();
+  }, [user?.id]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadConcerns();
+  };
 
   useEffect(() => {
     const loadConcerns = async () => {
@@ -71,8 +93,18 @@ export default function Report() {
 
       <Text style={styles.headerTitle}>YOUR REPORTS</Text>
 
-      <SafeAreaView style={styles.contentWrapper}>
-        <ScrollView contentContainerStyle={styles.content}>
+<SafeAreaView style={styles.contentWrapper}>
+        <ScrollView 
+          contentContainerStyle={styles.content}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#EA3A57']} // Customize the loading indicator color
+              tintColor="#EA3A57" // For iOS
+            />
+          }
+        >
           {reports.length === 0 ? (
             <Text style={styles.emptyMessage}>No reports found</Text>
           ) : (
@@ -94,15 +126,21 @@ export default function Report() {
                     {report.status}
                   </Text>
                 </View>
-                <TouchableOpacity 
-                  style={styles.viewButton} 
-                  onPress={() => router.push({
-                    pathname: '/ReportDetails',
-                    params: { concernId: report.id }
-                  })}
-                >
-                  <Text style={styles.viewText}>VIEW</Text>
-                </TouchableOpacity>
+<TouchableOpacity 
+  style={styles.viewButton} 
+  onPress={() => router.push({
+    pathname: '/ReportDetails',
+    params: { 
+      id: report.id,
+      header: report.concern_header,
+      content: report.concern_content,
+      date: report.created_at,
+      status: report.status
+    }
+  })}
+>
+  <Text style={styles.viewText}>VIEW</Text>
+</TouchableOpacity>
               </View>
             ))
           )}
@@ -228,7 +266,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   pending: {
-    color: '#FFA500',
+    color: '#f32d5d',
   },
   resolved: {
     color: '#4CAF50',

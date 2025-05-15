@@ -82,7 +82,8 @@ export async function loginUser({ email, password }) {
     user: {
       ...authData.user,
       first_name: profileData.first_name,
-      last_name: profileData.last_name
+      last_name: profileData.last_name,
+      role: profileData.role
     }
   };
 }
@@ -232,7 +233,7 @@ export const fetchUserConcerns = async (userId) => {
   try {
     const { data, error } = await supabase
       .from('concerns')
-      .select('id, concern_header, created_at, status')
+      .select('id, concern_header, concern_content, created_at, status')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 

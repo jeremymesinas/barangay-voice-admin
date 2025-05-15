@@ -244,3 +244,43 @@ export const fetchUserConcerns = async (userId) => {
     return [];
   }
 };
+
+export const fetchConcerns = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('concerns')
+      .select('id, concern_header, concern_content, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return {
+      data: data || [],
+      error: null
+    };
+  } catch (error) {
+    return {
+      data: [],
+      error: error.message
+    };
+  }
+};
+
+export const markConcernAsRead = async (concernId) => {
+  // In a real app, you might update a 'read_status' in your database
+  // For now, we'll just return success since we're handling read status locally
+  return { error: null };
+};
+
+export const deleteConcern = async (concernId) => {
+  try {
+    const { error } = await supabase
+      .from('concerns')
+      .delete()
+      .eq('id', concernId);
+
+    return { error };
+  } catch (error) {
+    return { error: error.message };
+  }
+};

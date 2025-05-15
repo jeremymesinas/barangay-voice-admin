@@ -5,11 +5,13 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { loginUser } from "../scripts/account-actions";
 import { useAuth } from "@/contexts/AuthContext";
+import { FontAwesome } from "@expo/vector-icons";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -93,7 +95,7 @@ export default function LogIn() {
           <TextInput
             style={styles.input}
             placeholder="Password"
-            secureTextEntry
+            secureTextEntry={!showPassword}
             autoCapitalize="none"
             onChangeText={(text) => {
               setPassword(text);
@@ -101,6 +103,16 @@ export default function LogIn() {
             }}
             value={password}
           />
+
+           <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword((prev) => !prev)}>
+              <FontAwesome
+                name={showPassword ? "eye" : "eye-slash"}
+                size={24}
+                color="#D5305A"
+              />
+            </TouchableOpacity>
         </View>
 
         <TouchableOpacity
@@ -147,6 +159,13 @@ const styles = StyleSheet.create({
     height: 350,
     resizeMode: "contain",
   },
+   eyeIcon: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    color: "#D5305A",
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -183,7 +202,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    height: 50,
+    height: 70,
   },
   disabledButton: {
     opacity: 0.7,

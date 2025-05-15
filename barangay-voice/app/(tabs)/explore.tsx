@@ -62,19 +62,19 @@ const reportData = [
   {
     icon: require('@/assets/images/logo.png'),
     title: 'PATANGGAL NG MGA GRAFFITI',
-    meta: 'by: user1234507, October 28, 6:20 PM',
+    meta: 'October 28, 6:20 PM',
     status: 'PENDING',
   },
   {
     icon: require('@/assets/images/logo.png'),
     title: 'Amoy ihi yung kapitbahay ASAP',
-    meta: 'by: user235452, October 28, 6:20 PM',
+    meta: 'October 28, 6:20 PM',
     status: 'PENDING',
   },
   {
     icon: require('@/assets/images/logo.png'),
     title: 'RANDOM PROBLEM',
-    meta: 'by: user235452, October 28, 6:20 PM',
+    meta: 'October 28, 6:20 PM',
     status: 'RESOLVED',
   },
 ];
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 20,
-    backgroundColor: '#E4F1AC',
+    // backgroundColor: '#E4F1AC',
     borderRadius: 20,
   },
   card: {

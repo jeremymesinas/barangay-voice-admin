@@ -327,3 +327,34 @@ export const fetchAnnouncements = async () => {
     return [];
   }
 };
+
+export const updateConcernStatus = async (concernId, newStatus) => {
+  try {
+    const { error } = await supabase
+      .from('concerns')
+      .update({ status: newStatus })
+      .eq('id', concernId);
+
+    return { error };
+  } catch (error) {
+    return { error: error.message };
+  }
+};
+
+export const addConcernResponse = async (concernId, response) => {
+  try {
+    const { data, error } = await supabase
+      .from('concerns')
+      .update({
+        response: response // Only update the response column
+      })
+      .eq('id', concernId)
+      .select();
+
+    if (error) throw error;
+    return { data: data[0], error: null };
+  } catch (error) {
+    console.error('Error adding response:', error);
+    return { data: null, error: error.message };
+  }
+};

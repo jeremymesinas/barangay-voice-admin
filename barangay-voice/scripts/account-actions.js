@@ -358,3 +358,67 @@ export const addConcernResponse = async (concernId, response) => {
     return { data: null, error: error.message };
   }
 };
+
+export const initializeTables = async () => {
+  // Remove the rpc call - we'll create tables manually in SQL
+  return { data: null, error: null };
+};
+
+export const getActiveEmergencyCalls = async () => {
+  const { data, error } = await supabase
+    .from('emergency_calls')
+    .select(`
+      id,
+      caller_id,
+      caller_location,
+      caller_address,
+      status,
+      created_at,
+      profiles:caller_id (name, phone_number)
+    `)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  return { data, error };
+};
+
+export const updateCallStatus = async (callId, newStatus) => {
+  const { data, error } = await supabase
+    .from('emergency_calls')
+    .update({ status: newStatus })
+    .eq('id', callId)
+    .select();
+
+  return { data, error };
+};
+
+export const addCallResponse = async (callId, response) => {
+  const user = supabase.auth.user();
+  const { data, error } = await supabase
+    .from('emergency_responses')
+    .insert({
+      call_id: callId,
+      response_text: response,
+      responder_id: user?.id || null
+    })
+    .select();
+
+  return { data, error };
+};
+
+export const getCallDetails = async (callId) => {
+  const { data, error } = await supabase
+    .from('emergency_calls')
+    .select(`
+      *,
+      profiles:caller_id (name, phone_number),
+      responses:emergency_responses (
+        *,
+        responder:responder_id (name)
+      )
+    `) // Fixed missing parenthesis
+    .eq('id', callId)
+    .single();
+
+  return { data, error };
+};

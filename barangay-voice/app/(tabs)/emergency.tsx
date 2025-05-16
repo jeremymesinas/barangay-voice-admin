@@ -1,7 +1,5 @@
-import React, { useState, useRef } from 'react';
-import * as Location from 'expo-location';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,214 +7,274 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Platform,
+  ScrollView,
   ActivityIndicator,
+  TextInput,
+  Linking,
+  Alert
 } from 'react-native';
-import OngoingCall from '../ongoingcall';
-import { Linking } from 'react-native';
+import { 
+  getActiveEmergencyCalls,
+  updateCallStatus,
+  addCallResponse,
+  getCallDetails
+} from '@/scripts/account-actions';
+import { EmergencyCall, EmergencyResponse } from '@/types'; // Import the types
 
-export default function EmergencyResponseScreen() {
-  const [address, setAddress] = useState<string | null>(null);
-  const [isCalling, setIsCalling] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [location, setLocation] = useState<{
-    coords: {
-      latitude: number;
-      longitude: number;
-      accuracy: number | null;  
-    };
-    timestamp: number;
-  } | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const callCancelledRef = useRef(false);
+const AdminCallReceiverScreen = () => {
+  // State with proper types
+  const [calls, setCalls] = useState<EmergencyCall[]>([]);
+  const [selectedCall, setSelectedCall] = useState<EmergencyCall | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [responseText, setResponseText] = useState<string>('');
+  const [isResponding, setIsResponding] = useState<boolean>(false);
   const router = useRouter();
-  
+
+  // Location type
+  interface Location {
+    latitude: number;
+    longitude: number;
+  }
+
+  // Fetch active calls on mount
   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
-        return;
+    const loadCalls = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await getActiveEmergencyCalls();
+        if (error) throw error;
+        setCalls(data || []);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to load emergency calls');
+        console.error('Fetch error:', error);
+      } finally {
+        setLoading(false);
       }
-  
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-            const reverseGeocode = async () => {
-        try {
-          const addresses = await Location.reverseGeocodeAsync({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          });
-          
-          if (addresses.length > 0) {
-            const firstAddress = addresses[0];
-            const formattedAddress = [
-              firstAddress.street,
-              firstAddress.city,
-              firstAddress.region,
-              firstAddress.postalCode,
-              firstAddress.country
-            ].filter(Boolean).join(', ');
-            
-            setAddress(formattedAddress);
-          }
-        } catch (error) {
-          console.warn('Reverse geocoding error:', error);
-        }
-      };
-      
-      await reverseGeocode();
-    })();
+    };
+    
+    loadCalls();
   }, []);
 
-
-  const handleCall = async () => {
-    callCancelledRef.current = false;
-    setIsCalling(true);
-  
-    try {
-      const freshLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-      setLocation(freshLocation);
-      
-      // Reverse geocode the fresh location
-      const addresses = await Location.reverseGeocodeAsync({
-        latitude: freshLocation.coords.latitude,
-        longitude: freshLocation.coords.longitude,
-      });
-      
-      let formattedAddress = "Address unavailable";
-      if (addresses.length > 0) {
-        formattedAddress = [
-          addresses[0].street,
-          addresses[0].city,
-          addresses[0].region,
-          addresses[0].postalCode,
-          addresses[0].country
-        ].filter(Boolean).join(', ');
-        
-        setAddress(formattedAddress);
-      }
-      
-      console.log('Emergency location:', {
-        coords: freshLocation.coords,
-        address: formattedAddress // Now properly defined
-      });
-      
-    } catch (error) {
-      console.warn('Error:', error);
+  // Handle opening maps with location
+  const openMap = (location: Location) => {
+    if (!location?.latitude || !location?.longitude) {
+      Alert.alert('Error', 'Invalid location data');
+      return;
     }
-  
-    setTimeout(() => {
-      if (!callCancelledRef.current) {
-        setIsCalling(false);
-        router.push('/ongoingcall');
-      }
-    }, 3000);
+    const url = `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`;
+    Linking.openURL(url).catch(err => console.error("Map error:", err));
   };
 
-  if (isConnected) {
-    return <OngoingCall onEndCall={() => {
-      setIsCalling(false);
-      setIsConnected(false);
-    }} />;
+  // Call management functions
+  const handleSelectCall = async (callId: string) => {
+    try {
+      const { data, error } = await getCallDetails(callId);
+      if (error) throw error;
+      if (data) setSelectedCall(data);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load call details');
+    }
+  };
+
+  const handleStartCall = async (callId: string) => {
+    try {
+      const { error } = await updateCallStatus(callId, 'in_progress');
+      if (error) throw error;
+      await fetchActiveCalls();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update call status');
+    }
+  };
+
+  const handleResolveCall = async (callId: string) => {
+    try {
+      const { error } = await updateCallStatus(callId, 'resolved');
+      if (error) throw error;
+      setSelectedCall(null);
+      await fetchActiveCalls();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to resolve call');
+    }
+  };
+
+  const handleSubmitResponse = async () => {
+    if (!responseText.trim()) {
+      Alert.alert('Error', 'Please enter a response');
+      return;
+    }
+
+    if (!selectedCall) return;
+
+    try {
+      setIsResponding(true);
+      const { error } = await addCallResponse(selectedCall.id, responseText);
+      if (error) throw error;
+      
+      setResponseText('');
+      const { data } = await getCallDetails(selectedCall.id);
+      if (data) setSelectedCall(data);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit response');
+    } finally {
+      setIsResponding(false);
+    }
+  };
+
+  const fetchActiveCalls = async () => {
+    const { data, error } = await getActiveEmergencyCalls();
+    if (!error && data) setCalls(data);
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#EA3A57" />
+      </View>
+    );
   }
-  
 
   return (
-    <View style={styles.wrapper}>
-      {/* Header */}
-      <View style={styles.topHalf}>
-        <View>
-          <Text style={styles.topLeftText}>BARANGAY{"\n"}VOICE</Text>
-        </View>
+    <View style={styles.container}>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>BARANGAY{"\n"}VOICE</Text>
         <Image
           source={require('@/assets/images/barangay-voice.png')}
-          style={styles.topRightImage}
+          style={styles.headerImage}
         />
       </View>
 
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.headerTitle}>EMERGENCY RESPONSE</Text>
+      <SafeAreaView style={styles.contentContainer}>
+        <Text style={styles.screenTitle}>EMERGENCY CALLS</Text>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {isCalling ? (
-            <>
-              <Text style={styles.title}>Connecting to Barangay Maclab…</Text>
-              <Text style={styles.subtitle}>Please wait while we connect your emergency call.</Text>
-              <Image source={require('@/assets/images/call.png')} style={styles.sosImage} />
-              <TouchableOpacity
-                onPress={() => {
-                    callCancelledRef.current = true;
-                    setIsCalling(false);
-                }}
-                style={styles.cancelBtn}
-                >
-                <Text style={styles.cancelText}>Cancel call</Text>
+        {selectedCall ? (
+          // Call Detail View
+          <View style={styles.detailView}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => setSelectedCall(null)}
+            >
+              <Text style={styles.backButtonText}>← Back to calls</Text>
             </TouchableOpacity>
 
-              <Text style={styles.subtitle}>Keep calm. Help is on the way…</Text>
-              <ActivityIndicator size="small" color="#EA3A57" style={{ marginVertical: 30 }} />
-            </>
-          ) : (
-            <>
-              <Text style={styles.title}>Are you safe?</Text>
-              <TouchableOpacity onPress={handleCall}>
-                <Image source={require('@/assets/images/sos.png')} style={styles.sosImage} />
-              </TouchableOpacity>
-              <Text style={styles.subtitle}>
-                Press the button if you think you are in danger. You will be directed to a call with Barangay Maclab.
-              </Text>
-            </>
-          )}
-
-          <View style={styles.locationBox}>
-            {errorMsg ? (
-              <Text style={styles.locationText}>📍 Location unavailable: {errorMsg}</Text>
-            ) : location ? (
-              <>
-                <Text style={styles.locationText}>
-                  📍 Lat: {location.coords.latitude.toFixed(4)}, 
-                  Long: {location.coords.longitude.toFixed(4)}
-                  {'\n'}
-                  {/* Accuracy: {location.coords.accuracy ? `${location.coords.accuracy.toFixed(0)} meters` : 'Unknown'} */}
-                </Text>
-                {address && (
-                  <Text style={[styles.locationText, { marginTop: 8 }]}>
-                    🏠 {address}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <Text style={styles.locationText}>📍 Getting your location...</Text>
-            )}
-          </View>
-            <TouchableOpacity 
-            onPress={() => {
-              if (location) {
-                const url = `https://www.google.com/maps/search/?api=1&query=${location.coords.latitude},${location.coords.longitude}`;
-                Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
-              }
-            }}
-          >
-            <Text style={[styles.locationText, { color: '#1a73e8', textDecorationLine: 'underline' }]}>
-              View on Google Maps
+            <Text style={styles.callTitle}>
+              Emergency from {selectedCall.profiles?.name || 'Unknown'}
             </Text>
-          </TouchableOpacity>
-        </View>
+            
+            <Text style={styles.callSubtitle}>
+              Phone: {selectedCall.profiles?.phone_number || 'N/A'}
+            </Text>
+
+            <TouchableOpacity 
+              onPress={() => openMap(selectedCall.caller_location)}
+              style={styles.locationBox}
+            >
+              <Text style={styles.locationText}>
+                📍 {selectedCall.caller_address || 'Location unknown'}
+              </Text>
+              <Text style={styles.mapLink}>View on Map</Text>
+            </TouchableOpacity>
+
+            <View style={styles.responseSection}>
+              <Text style={styles.sectionTitle}>Call Responses</Text>
+              {selectedCall.responses?.length > 0 ? (
+                selectedCall.responses.map((response: EmergencyResponse) => (
+                  <View key={response.id} style={styles.responseBubble}>
+                    <Text style={styles.responseAuthor}>
+                      {response.responder?.name || 'Admin'}:
+                    </Text>
+                    <Text style={styles.responseText}>{response.response_text}</Text>
+                    <Text style={styles.responseTime}>
+                      {new Date(response.created_at).toLocaleTimeString()}
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noResponses}>No responses yet</Text>
+              )}
+            </View>
+
+            <TextInput
+              style={styles.responseInput}
+              placeholder="Type your response..."
+              value={responseText}
+              onChangeText={setResponseText}
+              multiline
+              editable={!isResponding}
+            />
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.resolveButton]}
+                onPress={() => selectedCall && handleResolveCall(selectedCall.id)}
+              >
+                <Text style={styles.buttonText}>Resolve Call</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleSubmitResponse}
+                disabled={isResponding || !responseText.trim()}
+              >
+                {isResponding ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Send Response</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          // Call List View
+          <ScrollView style={styles.callList}>
+            {calls.length > 0 ? (
+              calls.map((call: EmergencyCall) => (
+                <TouchableOpacity 
+                  key={call.id}
+                  style={styles.callCard}
+                  onPress={() => handleSelectCall(call.id)}
+                >
+                  <View style={styles.callHeader}>
+                    <Text style={styles.callName}>
+                      {call.profiles?.name || 'Unknown caller'}
+                    </Text>
+                    <Text style={styles.callTime}>
+                      {new Date(call.created_at).toLocaleTimeString()}
+                    </Text>
+                  </View>
+                  <Text style={styles.callAddress}>
+                    {call.caller_address || 'Location unknown'}
+                  </Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.statusButton,
+                      call.status === 'in_progress' && styles.inProgressButton
+                    ]}
+                    onPress={() => handleStartCall(call.id)}
+                  >
+                    <Text style={styles.statusButtonText}>
+                      {call.status === 'active' ? 'Take Call' : 'In Progress'}
+                    </Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.noCallsText}>No active emergency calls</Text>
+            )}
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );
-}
+};
 
+// Styles
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  topHalf: {
+  header: {
     backgroundColor: "#A7D477",
     flexDirection: "row",
     alignItems: "center",
@@ -224,51 +282,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
-  header: {
-    backgroundColor: '#88C057',
-    paddingTop: Platform.OS === 'android' ? 40 : 0,
-    paddingBottom: 20,
-    width: '100%',
-  },
-  headerContent: {
-    marginLeft: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  headerText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 20,
-    lineHeight: 24,
-  },
-  flagIcon: {
-    width: 40,
-    height: 30,
-    resizeMode: 'contain',
-    marginRight: 20,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-  },
-  redBanner: {
-    backgroundColor: '#EA3A57',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 20,
-    width: 285,
-    height: 83,
-    alignSelf: 'center',
-    marginTop: -15,
-    marginBottom: 20,
-    justifyContent: 'center', 
-    alignItems: 'center',    
-    flexDirection: 'row',    
-  },
-  topLeftText: {
+  headerTitle: {
     fontFamily: "Anton-Regular",
     fontSize: 30,
     color: "white",
@@ -276,13 +290,17 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     paddingLeft: 10,
   },
-  topRightImage: {
+  headerImage: {
     width: 50,
     height: 50,
     resizeMode: "contain",
     marginRight: 10,
   },
-  headerTitle: {
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  screenTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#EA3A57',
@@ -290,56 +308,160 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     fontFamily: 'Poppins-Regular',
   },
-  bannerText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center', 
-  },
-  
-  content: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+  callList: {
+    width: '100%',
   },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginHorizontal: 10,
-    marginTop: 10,
-  },
-  sosImage: {
-    width: 150,
-    height: 150,
-    resizeMode: 'contain',
+  callCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  callHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  callName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  callTime: {
+    color: '#666',
+    fontSize: 14,
+  },
+  callAddress: {
+    color: '#444',
+    marginBottom: 10,
+  },
+  statusButton: {
+    backgroundColor: '#EA3A57',
+    padding: 8,
+    borderRadius: 5,
+    alignSelf: 'flex-start',
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  inProgressButton: {
+    backgroundColor: '#FF9800',
+  },
+  statusButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  detailView: {
+    flex: 1,
+    padding: 15,
+  },
+  backButton: {
+    marginBottom: 15,
+  },
+  backButtonText: {
+    color: '#EA3A57',
+    fontWeight: 'bold',
+  },
+  callTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  callSubtitle: {
+    fontSize: 16,
+    marginBottom: 15,
+    color: '#555',
   },
   locationBox: {
     backgroundColor: '#DAF0A2',
     padding: 15,
     borderRadius: 15,
-    marginTop: 30,
-    width: '100%',
+    marginTop: 10,
+    marginBottom: 20,
   },
   locationText: {
     fontSize: 14,
     color: '#000',
     textAlign: 'center',
   },
-  cancelBtn: {
-    backgroundColor: '#DAF0A2',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-    marginTop: 20,
+  mapLink: {
+    color: '#1a73e8',
+    textDecorationLine: 'underline',
+    marginTop: 5,
+    textAlign: 'center',
   },
-  cancelText: {
-    color: '#EA3A57',
+  responseSection: {
+    marginVertical: 15,
+  },
+  sectionTitle: {
     fontWeight: 'bold',
+    marginBottom: 10,
     fontSize: 16,
   },
+  responseBubble: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  responseAuthor: {
+    fontWeight: 'bold',
+    color: '#EA3A57',
+  },
+  responseText: {
+    marginVertical: 5,
+  },
+  responseTime: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'right',
+  },
+  noResponses: {
+    fontStyle: 'italic',
+    color: '#666',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  responseInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    minHeight: 100,
+    marginBottom: 15,
+    textAlignVertical: 'top',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  actionButton: {
+    backgroundColor: '#EA3A57',
+    padding: 15,
+    borderRadius: 10,
+    flex: 0.48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resolveButton: {
+    backgroundColor: '#4CAF50',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  noCallsText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#666',
+  },
 });
+
+export default AdminCallReceiverScreen;

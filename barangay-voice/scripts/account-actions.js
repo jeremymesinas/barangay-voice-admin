@@ -382,12 +382,14 @@ export const getActiveEmergencyCalls = async () => {
   return { data, error };
 };
 
-export const updateCallStatus = async (callId, newStatus) => {
+
+export const updateCallStatus = async (callId, status) => {
   const { data, error } = await supabase
     .from('emergency_calls')
-    .update({ status: newStatus })
+    .update({ status })
     .eq('id', callId)
-    .select();
+    .select()
+    .single();
 
   return { data, error };
 };
@@ -422,3 +424,44 @@ export const getCallDetails = async (callId) => {
 
   return { data, error };
 };
+
+export const getOngoingCalls = async () => {
+  const { data, error } = await supabase
+    .from('emergency_calls')
+    .select(`
+      *,
+      profiles:caller_id (name, phone_number)
+    `)
+    .eq('status', 'in_progress');
+
+  return { data, error };
+};
+
+export const sendCallMessage = async (callId, senderId, message) => {
+  const { data, error } = await supabase
+    .from('emergency_messages')
+    .insert([{
+      call_id: callId,
+      sender_id: senderId,
+      message_text: message
+    }])
+    .select();
+
+  return { data, error };
+};
+
+// Both: Get call messages
+export const getCallMessages = async (callId) => {
+  const { data, error } = await supabase
+    .from('emergency_messages')
+    .select(`
+      *,
+      sender:sender_id (name)
+    `)
+    .eq('call_id', callId)
+    .order('created_at', { ascending: true });
+
+  return { data, error };
+};
+
+// Admin: Update call status
